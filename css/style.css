@@ -1,6 +1,62 @@
-body{
+/* css/style.css */
+body {
   font-family: 'Product Sans';
 }
-.custom-section{
-  border-bottom:3px solid gold;
+.custom-section {
+  border-bottom: 3px solid gold;
+}
+.login-container {
+  min-height: 100vh;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.login-card {
+  background: white;
+  border-style: solid;
+  border-color: #007bff;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  width: 100%;
+  max-width: 450px;
+}
+.login-card h2 {
+  color: #007bff;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+.form-control {
+  border-radius: 10px;
+  padding: 12px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s;
+}
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+}
+.btn-login {
+  background: #ffc107;
+  border: none;
+  border-radius: 20px;
+  padding: 12px;
+  font-weight: bold;
+  color: #fff;
+  transition: all 0.3s;
+}
+.btn-login:hover {
+  background: #e0a800;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+}
+.forgot-password {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 14px;
+}
+.forgot-password:hover {
+  text-decoration: underline;
 }
