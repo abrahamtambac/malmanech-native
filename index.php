@@ -1,9 +1,11 @@
 <!-- index.php -->
 <?php 
 session_start();
+include_once './config/db.php'; // Pastikan path benar relatif ke index.php
+
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 
-function loadPage($page) {
+function loadPage($page, $conn) { // Tambahkan parameter $conn
     switch ($page) {
         case 'home':
             include 'file_/home.php';
@@ -31,7 +33,6 @@ function loadPage($page) {
 }
 
 include '_partials/_template/header.php';
-//include '_partials/css/style.css';
-loadPage($page);
-//include '_partials/_template/footer.php'; // Opsional, jika Anda punya footer
+
+loadPage($page, $conn); // Teruskan $conn ke fungsi
 ?>

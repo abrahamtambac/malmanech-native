@@ -1,46 +1,22 @@
 <!-- file_/login.php -->
-
 <?php
-include './config/db.php';
+include_once './controllers/AuthController.php'; // Naik satu level dari file_/ ke controllers/
 
+$auth = new AuthController($conn); // Gunakan $conn yang diteruskan dari index.php
+$error = null;
+
+// Proses form login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
-
-    $stmt = $conn->prepare("SELECT id, name, email, password, role_id FROM tb_users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
-        if (password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['name'] = $user['name'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['role_id'] = $user['role_id'];
-            
-            if ($user['role_id'] == 1) {
-                header("Location: index.php?page=admin_dashboard");
-            } else {
-                header("Location: index.php?page=home");
-            }
-            exit();
-        } else {
-            $error = "Invalid password!";
-        }
-    } else {
-        $error = "Email not found!";
-    }
-    $stmt->close();
+    $error = $auth->login($email, $password);
 }
 ?>
 
 <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
     <div style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); padding: 50px; width: 100%; max-width: 480px; position: relative; z-index: 1; backdrop-filter: blur(10px);">
        
-
-        <?php if (isset($error)): ?>
+        <?php if ($error): ?>
             <div style="background: #dc3545; border-radius: 10px; padding: 15px; color: white; margin-bottom: 25px; text-align: center; font-family: 'Segoe UI', sans-serif; font-size: 14px;">
                 <?php echo $error; ?>
             </div>
@@ -48,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form action="" method="POST">
             <div style="margin-bottom: 30px;">
-                <label style="display: block; color: #000;  font-weight: bold; margin-bottom: 10px;">Email</label>
+                <label style="display: block; color: #000; font-weight: bold; margin-bottom: 10px;">Email</label>
                 <div style="position: relative;">
                     <input type="email" name="email" required class="form-control" 
                         style="padding: 14px; border-radius: 10px; font-size: 16px; background: #f5f6f5; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); transition: all 0.3s;" 
@@ -59,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div style="margin-bottom: 30px;">
-                <label style="display: block; color: #000;  font-weight: bold; margin-bottom: 10px;">Password</label>
+                <label style="display: block; color: #000; font-weight: bold; margin-bottom: 10px;">Password</label>
                 <div style="position: relative;">
                     <input type="password" name="password" id="password" required class="form-control" 
                         style="padding: 14px; border-radius: 10px; font-size: 16px; background: #f5f6f5; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); transition: all 0.3s;" 
@@ -75,9 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
                 <div>
                     <input type="checkbox" id="rememberMe" style="margin-right: 8px; accent-color: #0d6efd;">
-                    <label for="rememberMe" style="color: #555;  font-size: 14px;">Remember me</label>
+                    <label for="rememberMe" style="color: #555; font-size: 14px;">Remember me</label>
                 </div>
-                <a href="#" style="color: #0d6efd; text-decoration: none;  font-weight: 600; transition: color 0.3s;" 
+                <a href="#" style="color: #0d6efd; text-decoration: none; font-weight: 600; transition: color 0.3s;" 
                    onmouseover="this.style.color='#ffc107'" 
                    onmouseout="this.style.color='#0d6efd'">Forgot Password?</a>
             </div>
