@@ -27,7 +27,7 @@ if (!class_exists('AdminController')) {
         }
 
         public function uploadProfileImage() {
-            $uploadDir = '../upload/image/';
+            $uploadDir = './upload/image/';
             if (!file_exists($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
@@ -203,6 +203,41 @@ if (!class_exists('AdminController')) {
             $meetings = $result->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
             return $meetings;
+        }
+        public function getLastSeen($user_id) {
+            $stmt = $this->conn->prepare("SELECT last_seen FROM tb_users WHERE id = ?");
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+            $stmt->close();
+            return $row['last_seen'] ?? null;
+        }
+    
+        public function getFollowing($user_id) {
+            $stmt = $this->conn->prepare("
+                SELECT friend_id FROM tb_friends 
+                WHERE user_id = ? AND status IN ('accepted', 'pending')
+            ");
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $following = $result->fetch_all(MYSQLI_ASSOC);
+            $stmt->close();
+            return $following;
+        }
+    
+        public function getFollowers($user_id) {
+            $stmt = $this->conn->prepare("
+                SELECT user_id FROM tb_friends 
+                WHERE friend_id = ? AND status = 'accepted'
+            ");
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $followers = $result->fetch_all(MYSQLI_ASSOC);
+            $stmt->close();
+            return $followers;
         }
     }
 }

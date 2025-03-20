@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
+<?= include '_partials/_template/header.php';?>
 <div style="min-height: 100vh; display: flex; align-items: stretch; background: #fff;">
     <!-- Left Side -->
     <div style="flex: 1; background: linear-gradient(135deg, #0d6efd, #0a58ca); display: flex; align-items: center; justify-content: center; padding: 20px;">

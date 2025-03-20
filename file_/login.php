@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $error = $auth->login($email, $password);
 }
 ?>
-
+<?= include '_partials/_template/header.php';?>
 <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
     <div style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); padding: 50px; width: 100%; max-width: 480px; position: relative; z-index: 1; backdrop-filter: blur(10px);">
        
