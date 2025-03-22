@@ -56,6 +56,10 @@
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label for="meeting_link" class="form-label">Link Meeting</label>
+                        <input type="url" class="form-control" id="meeting_link" name="meeting_link" placeholder="Masukkan link Zoom/Google Meet">
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Undang Pengguna</label>
                         <div class="input-group mb-2">
                             <input type="text" class="form-control" id="search_query" placeholder="Masukkan nama atau email" required>

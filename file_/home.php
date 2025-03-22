@@ -1,85 +1,46 @@
+<?php include '_partials/_template/header.php'; ?>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowbite - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-white dark:bg-gray-900">
+    <!-- Hero Section -->
+  
 
+    <!-- Timeline Section -->
+    <section class="py-8 px-4 mx-auto max-w-screen-xl">
+        <ol class="relative border-l border-gray-200 dark:border-gray-700">
+            <li class="mb-10 ml-6">
+                <span class="absolute flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-gray-700"></span>
+                <time class="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">February 2022</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Application UI code in Tailwind CSS</h3>
+                <p class="mb-4 text-base font-normal text-gray-500 dark:text-gray-400">Get access to over 20+ pages including a dashboard layout, charts, kanban board, calendar, and pre-order E-commerce & Marketing pages.</p>
+                <a href="#" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                    Learn more
+                    <svg class="w-3 h-3 ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                    </svg>
+                </a>
+            </li>
+            <li class="mb-10 ml-6">
+                <span class="absolute flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-gray-700"></span>
+                <time class="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">March 2022</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Marketing UI design in Figma</h3>
+                <p class="text-base font-normal text-gray-500 dark:text-gray-400">All of the pages and components are first designed in Figma and we keep a parity between the two versions even as we update the project.</p>
+            </li>
+            <li class="ml-6">
+                <span class="absolute flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-gray-700"></span>
+                <time class="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">April 2022</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">E-Commerce UI code in Tailwind CSS</h3>
+                <p class="text-base font-normal text-gray-500 dark:text-gray-400">Get started with dozens of web components and interactive elements built on top of Tailwind CSS.</p>
+            </li>
+        </ol>
+    </section>
 
-<?= include '_partials/_template/header.php';?>
-
-  <div class="container mt-4">
-    <div class="p-5 text-dark  d-flex align-items-center position-relative" style="border-top: 4px solid gold; 
-                  border-right: 20px solid gold; 
-                  border-top-right-radius: 40px;
-                  border-radius: 0 0 50px 10px;">
-
-      <!-- Image on the left -->
-      <!-- <img src="image/robot-ai.png" alt="AI Robot" class="img-fluid"
-        style="width: 200px; height: auto; position: absolute; bottom: 10px; left: 20px;"> -->
-
-      <!-- Text Content -->
-      <div class="" >
-        <h1 style="font-size:60px;"><b>Starvee Engine Update v.3 (vee-3)</b></h1>
-        <p class="text-muted">Gunakan Futuristik AI chatbot di lokal server kamu,<br />Layanan Chat bot virtual yang
-          bisa kamu gunain untuk bisnis sehari-hari bisa integrasi langsung di aplikasi kamu</p>
-
-      </div>
-    </div>
-  </div>
-<!-- Features Section -->
-<div class="container mt-5">
-  <h2 class="mb-3 fw-bolder">Starvee High Capabilites</h2>
-  <p>Due to high request of AI, The next generation AI Chatbot has been created to be reusable in code optimization in Aurora Server</p>
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-    
-    <!-- Feature 1 -->
-    <div class="col">
-      <div class="card p-3  bg-light" 
-           style="border-top: 4px solid gold; border-right: 4px solid orange; 
-                  border-radius: 0 0 50px 10px;">
-        <i class="bi bi-robot text-primary fs-1"></i>
-        <h5 class="mt-3"><b>AI Chatbot</b></h5>
-        <p>Super Charge AI Chatbot for Developsers what ever you based on, just hover the chats while stucks buddy...</p>
-      </div>
-    </div>
-
-    <!-- Feature 2 -->
-    <div class="col">
-      <div class="card p-3 bg-light " 
-           style="border-top: 4px solid gold; border-right: 4px solid orange; 
-                  border-radius: 0 0 50px 10px;">
-        <i class="bi bi-shield-lock text-danger fs-1"></i>
-        <h5 class="mt-3"><b>Security</b></h5>
-        <p>Starvee AI Secure features and anti fraud system will detect anomali access, what ever you are, where ever you are</p>
-      </div>
-    </div>
-
-    <!-- Feature 3 -->
-    <div class="col">
-      <div class="card p-3 bg-light " 
-           style="border-top: 4px solid gold; border-right: 4px solid orange; 
-                  border-radius: 0 0 50px 10px;">
-        <i class="bi bi-speedometer2 text-success fs-1"></i>
-        <h5 class="mt-3"><b>Fastest Response</b></h5>
-        <p>You will don't get stuck wile AI develoving your product code, just think 0,2 seconds you will be happy in short time</p>
-      </div>
-    </div>
-
-    <!-- Feature 4 -->
-    <div class="col">
-      <div class="card p-3 bg-light " 
-           style="border-top: 4px solid gold; border-right: 4px solid orange; 
-                  border-radius: 0 0 50px 10px;">
-        <i class="bi bi-cloud-arrow-down text-warning fs-1"></i>
-        <h5 class="mt-3"><b>Cloud Options</b></h5>
-        <p>Starvee engine offer Cloud Options to collect the dataset one you submit, and it will be resuable in every your projects</p>
-      </div>
-    </div>
-
-  </div>
-</div>
-  </div>
-
-
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-    crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </body>
-
 </html>

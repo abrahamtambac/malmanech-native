@@ -140,7 +140,17 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_meeting_details' && isset
     <div class="col-md-5">
         <div class="card-widget border">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Meeting Saya</h5>
+                <h5 class="fw-bolder">Meeting Saya</h5>
+                <div>
+        <select id="filterPlatform" class="form-select form-select-sm" style="width: auto; display: inline-block;">
+            <option value="all">Semua Platform</option>
+            <option value="zoom">Zoom</option>
+            <option value="google">Google Meet</option>
+        </select>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addMeetingModal">
+            <i class="bi bi-plus"></i> Tambah Meeting
+        </button>
+    </div>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addMeetingModal">
                     <i class="bi bi-plus"></i> Tambah Meeting
                 </button>
@@ -149,34 +159,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_meeting_details' && isset
                 <div class="meeting-item">
                     <span class="text-muted"><?php echo date('D, d M', strtotime($meeting['date'])); ?></span>
                     <p>
-                        <?php echo htmlspecialchars($meeting['title']); ?>
+                        <?php echo htmlspecialchars($meeting['title']); ?><br/>
                         <span class="badge bg-<?php echo $meeting['platform'] === 'zoom' ? 'primary' : 'success'; ?>">
                             <?php echo date('h:i A', strtotime($meeting['time'])); ?>
                         </span>
-                        <i class="bi bi-<?php echo $meeting['platform'] === 'zoom' ? 'zoom-in' : 'google'; ?> ms-2"></i>
+                        
                     </p>
-                    <div>
-                        <small class="text-muted">Peserta:</small>
-                        <?php
-                        $details = $adminController->getMeetingDetails($meeting['id']);
-                        if (!empty($details['invited_users'])) {
-                            foreach ($details['invited_users'] as $user): ?>
-                                <div class="d-flex align-items-center">
-                                    <img src="<?php echo !empty($user['profile_image']) ? './upload/image/' . $user['profile_image'] : './image/robot-ai.png'; ?>"
-                                        alt="<?php echo htmlspecialchars($user['name']); ?>" class="invited-user-img">
-                                    <span><?php echo htmlspecialchars($user['name']); ?></span>
-                                </div>
-                            <?php endforeach;
-                        } else {
-                            echo '<p class="text-muted">Tidak ada peserta.</p>';
-                        }
-                        ?>
-                    </div>
+                    
+                    <hr/>
                     <div class="mt-2">
-                        <button class="btn btn-sm btn-info view-meeting"
-                            data-meeting-id="<?php echo $meeting['id']; ?>">Lihat</button>
-                        <button class="btn btn-sm btn-danger delete-meeting"
-                            data-meeting-id="<?php echo $meeting['id']; ?>">Hapus</button>
+                        <button class="btn btn-outline-primary view-meeting"
+                            data-meeting-id="<?php echo $meeting['id']; ?>"><i class="bi bi-eye"></i>&nbsp;Lihat</button>
+                        <button class="btn btn-outline-danger delete-meeting"
+                            data-meeting-id="<?php echo $meeting['id']; ?>"><i class="bi bi-trash"></i>&nbsp;Hapus</button>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -187,20 +182,20 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_meeting_details' && isset
     <!-- Invited Meetings -->
     <div class="col-md-4">
         <div class="card-widget border">
-            <h5>Undangan Meeting</h5>
+            <h5 class="fw-bolder">Undangan Meeting</h5><br/>
             <?php foreach ($invitedMeetings as $meeting): ?>
                 <div class="meeting-item">
                     <span class="text-muted"><?php echo date('D, d M', strtotime($meeting['date'])); ?></span>
                     <p>
-                        <?php echo htmlspecialchars($meeting['title']); ?>
+                        <?php echo htmlspecialchars($meeting['title']); ?><br/>
                         <span class="badge bg-<?php echo $meeting['platform'] === 'zoom' ? 'primary' : 'success'; ?>">
                             <?php echo date('h:i A', strtotime($meeting['time'])); ?>
                         </span>
-                        <i class="bi bi-<?php echo $meeting['platform'] === 'zoom' ? 'zoom-in' : 'google'; ?> ms-2"></i>
+                        
                         <br>
                         <small class="text-muted">Dibuat oleh: <?php echo htmlspecialchars($meeting['creator']); ?></small>
                     </p>
-                    <button class="btn btn-sm btn-info view-meeting"
+                    <button class="btn btn-sm btn-primary view-meeting"
                         data-meeting-id="<?php echo $meeting['id']; ?>">Lihat</button>
                 </div>
             <?php endforeach; ?>

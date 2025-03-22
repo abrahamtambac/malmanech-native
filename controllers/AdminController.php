@@ -80,15 +80,15 @@ if (!class_exists('AdminController')) {
             return $meetings;
         }
 
-        public function addMeeting($date, $time, $title, $platform, $invited_users = []) {
+        public function addMeeting($date, $time, $title, $platform, $invited_users = [], $meeting_link = null) {
             $user_id = $_SESSION['user_id'];
-            $stmt = $this->conn->prepare("INSERT INTO tb_meetings (user_id, date, time, title, platform) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("issss", $user_id, $date, $time, $title, $platform);
+            $stmt = $this->conn->prepare("INSERT INTO tb_meetings (user_id, date, time, title, platform, meeting_link) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("isssss", $user_id, $date, $time, $title, $platform, $meeting_link);
             
             if ($stmt->execute()) {
                 $meeting_id = $stmt->insert_id;
                 $stmt->close();
-
+        
                 if (!empty($invited_users)) {
                     $this->inviteUsers($meeting_id, $invited_users);
                 }
@@ -134,13 +134,13 @@ if (!class_exists('AdminController')) {
         }
 
         public function getMeetingDetails($meeting_id) {
-            $stmt = $this->conn->prepare("SELECT date, time, title, platform, user_id FROM tb_meetings WHERE id = ?");
+            $stmt = $this->conn->prepare("SELECT date, time, title, platform, meeting_link, user_id FROM tb_meetings WHERE id = ?");
             $stmt->bind_param("i", $meeting_id);
             $stmt->execute();
             $result = $stmt->get_result();
             $meeting = $result->fetch_assoc();
             $stmt->close();
-
+        
             if ($meeting) {
                 $stmt = $this->conn->prepare("SELECT name FROM tb_users WHERE id = ?");
                 $stmt->bind_param("i", $meeting['user_id']);
@@ -149,7 +149,7 @@ if (!class_exists('AdminController')) {
                 $creator = $result->fetch_assoc();
                 $meeting['creator'] = $creator ? $creator['name'] : 'Unknown';
                 $stmt->close();
-
+        
                 $stmt = $this->conn->prepare("
                     SELECT u.id, u.name, u.email, u.profile_image 
                     FROM tb_meeting_invites mi 

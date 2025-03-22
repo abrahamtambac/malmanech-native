@@ -107,6 +107,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' || $_SERVER['REQUEST_METHOD'] === 'POST
             echo json_encode($requests);
             exit();
         }
+
+        // Get friends with latest messages
+        if ($action === 'get_friends_with_latest') {
+            ob_clean();
+            $query = $_GET['query'] ?? '';
+            $friends = $chatController->getFriendsWithLatest($user_id, $query);
+            header('Content-Type: application/json');
+            echo json_encode($friends);
+            exit();
+        }
     }
 
     // Handle authentication-related AJAX requests
@@ -119,19 +129,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' || $_SERVER['REQUEST_METHOD'] === 'POST
             $email = $_POST['email'] ?? '';
             $password = $_POST['password'] ?? '';
             $result = $authController->login($email, $password);
+            if (is_string($result)) {
+                // Jika login gagal, kembalikan pesan error
+                echo json_encode(['success' => false, 'error' => $result]);
+            } else {
+                // Jika berhasil, kembalikan sukses
+                echo json_encode(['success' => true]);
+            }
             header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
-        }
-
-        if ($action === 'signup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            ob_clean();
-            $name = $_POST['name'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $password = $_POST['password'] ?? '';
-            $result = $authController->signup($name, $email, $password);
-            header('Content-Type: application/json');
-            echo json_encode($result);
             exit();
         }
     }
@@ -142,7 +147,12 @@ function loadPage($page, $conn) {
     $isAdmin = isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1;
     $isLoggedIn = isset($_SESSION['user_id']);
 
-  
+    // Pastikan folder dan file ada
+    $filePath = "file_/{$page}.php";
+    if (!file_exists($filePath) && $page !== 'logout' && $page !== 'verify') {
+        include 'file_/404/not_found_1.php';
+        return;
+    }
 
     switch ($page) {
         case 'home':
@@ -161,6 +171,13 @@ function loadPage($page, $conn) {
                 exit();
             }
             include 'file_/signup.php';
+            break;
+        case 'verify':
+            if ($isLoggedIn) {
+                header('Location: index.php?page=home');
+                exit();
+            }
+            include 'file_/verify.php';
             break;
         case 'logout':
             session_destroy();
@@ -183,7 +200,7 @@ function loadPage($page, $conn) {
             }
             break;
         case 'admin_dashboard':
-            if ($isAdmin) {
+            if ($isLoggedIn && $isAdmin) {
                 include 'file_/admin_dashboard.php';
             } else {
                 include 'file_/404/not_found_1.php';
@@ -200,9 +217,6 @@ function loadPage($page, $conn) {
             include 'file_/404/not_found_1.php';
             break;
     }
-
-    // Include footer if you have one (optional)
-    // include '_partials/footer.php';
 }
 
 // Load the requested page

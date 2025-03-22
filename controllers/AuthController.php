@@ -1,4 +1,3 @@
-<!-- controllers/AuthController.php -->
 <?php
 if (!class_exists('AuthController')) {
     class AuthController {
@@ -9,13 +8,16 @@ if (!class_exists('AuthController')) {
         }
 
         public function login($email, $password) {
-            $stmt = $this->conn->prepare("SELECT id, name, email, password, role_id FROM tb_users WHERE email = ?");
+            $stmt = $this->conn->prepare("SELECT id, name, email, password, role_id, is_verified FROM tb_users WHERE email = ?");
             $stmt->bind_param("s", $email);
             $stmt->execute();
             $result = $stmt->get_result();
-
+        
             if ($result->num_rows === 1) {
                 $user = $result->fetch_assoc();
+                if ($user['is_verified'] == 0) {
+                    return "Please verify your email before logging in!";
+                }
                 if (password_verify($password, $user['password'])) {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['name'] = $user['name'];

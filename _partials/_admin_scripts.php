@@ -59,49 +59,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Tampilkan detail meeting di modal
     $('.view-meeting').on('click', function() {
-        var meetingId = $(this).data('meeting-id');
-        $.ajax({
-            url: 'index.php?page=admin_dashboard&action=get_meeting_details',
-            type: 'GET',
-            data: { meeting_id: meetingId },
-            dataType: 'json',
-            success: function(data) {
-                if (data.error) {
-                    $('#meetingDetails').html('<p class="text-danger">' + data.error + '</p>');
+    var meetingId = $(this).data('meeting-id');
+    $.ajax({
+        url: 'index.php?page=admin_dashboard&action=get_meeting_details',
+        type: 'GET',
+        data: { meeting_id: meetingId },
+        dataType: 'json',
+        success: function(data) {
+            if (data.error) {
+                $('#meetingDetails').html('<p class="text-danger">' + data.error + '</p>');
+            } else {
+                var html = `
+                    <p><strong>Judul:</strong> ${data.title}</p>
+                    <p><strong>Tanggal:</strong> ${data.date}</p>
+                    <p><strong>Waktu:</strong> ${data.time}</p>
+                    <p><strong>Platform:</strong> ${data.platform}</p>
+                    <p><strong>Link Meeting:</strong> ${data.meeting_link ? `<a href="${data.meeting_link}" target="_blank">${data.meeting_link}</a>` : 'Tidak ada link'}</p>
+                    <p><strong>Dibuat oleh:</strong> ${data.creator}</p>
+                    <p><strong>Peserta:</strong></p><ul>
+                `;
+                if (data.invited_users.length > 0) {
+                    data.invited_users.forEach(function(user) {
+                        html += `
+                            <li>
+                                <img src="${user.profile_image ? './upload/image/' + user.profile_image : './image/robot-ai.png'}" 
+                                     class="invited-user-img">
+                                ${user.name} (${user.email})
+                            </li>
+                        `;
+                    });
                 } else {
-                    var html = `
-                        <p><strong>Judul:</strong> ${data.title}</p>
-                        <p><strong>Tanggal:</strong> ${data.date}</p>
-                        <p><strong>Waktu:</strong> ${data.time}</p>
-                        <p><strong>Platform:</strong> ${data.platform}</p>
-                        <p><strong>Dibuat oleh:</strong> ${data.creator}</p>
-                        <p><strong>Peserta:</strong></p><ul>
-                    `;
-                    if (data.invited_users.length > 0) {
-                        data.invited_users.forEach(function(user) {
-                            html += `
-                                <li>
-                                    <img src="${user.profile_image ? './upload/image/' + user.profile_image : './image/robot-ai.png'}" 
-                                         class="invited-user-img">
-                                    ${user.name} (${user.email})
-                                </li>
-                            `;
-                        });
-                    } else {
-                        html += '<li>Tidak ada peserta.</li>';
-                    }
-                    html += '</ul>';
-                    $('#meetingDetails').html(html);
-                    viewModal.show();
+                    html += '<li>Tidak ada peserta.</li>';
                 }
-            },
-            error: function(xhr, status, error) {
-                $('#meetingDetails').html('<p class="text-danger">Gagal memuat detail meeting: ' + error + '</p>');
-                console.log('Details AJAX Error: ' + xhr.responseText);
+                html += '</ul>';
+                $('#meetingDetails').html(html);
                 viewModal.show();
             }
-        });
+        },
+        error: function(xhr, status, error) {
+            $('#meetingDetails').html('<p class="text-danger">Gagal memuat detail meeting: ' + error + '</p>');
+            console.log('Details AJAX Error: ' + xhr.responseText);
+            viewModal.show();
+        }
     });
+});
 
     // Hapus meeting
     $('.delete-meeting').on('click', function() {
@@ -116,6 +117,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (invitedUsers === 0) {
             e.preventDefault();
             alert('Harap pilih setidaknya satu pengguna untuk diundang.');
+        }
+    });
+});
+$('#filterPlatform').on('change', function() {
+    var platform = $(this).val();
+    $('.meeting-item').each(function() {
+        var meetingPlatform = $(this).find('.badge').text().includes('Zoom') ? 'zoom' : 'google';
+        if (platform === 'all' || meetingPlatform === platform) {
+            $(this).show();
+        } else {
+            $(this).hide();
         }
     });
 });
