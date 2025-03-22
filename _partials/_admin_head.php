@@ -7,10 +7,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-    <link rel="stylesheet" href="./_partials/css/style.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="./_partials/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* [CSS Anda tetap sama seperti sebelumnya] */
+     body {
+  font-family: 'Product Sans';
+}
         .dashboard-container {
             padding: 20px;
             max-width: 1200px;
@@ -257,10 +261,10 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg bg-primary border-bottom border-5 border-warning">
+    <nav class="navbar navbar-expand-lg bg-primary ">
         <div class="container-fluid">
             <a class="navbar-brand text-white fw-bold" href="index.php?page=home">
-                <h1 class="mb-0"><i class="bi bi-fingerprint text-warning"></i><b> Malmanech</b></h1>
+                <h1 class="mb-0"><i class="bi bi-fingerprint text-warning"></i><b> Mal + </b></h1>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -341,7 +345,7 @@
                 <div class="modal-body chat-modal-body">
                     <div class="friend-list">
                         <div class="input-group mb-3 p-2">
-                            <input type="text" class="form-control" id="friend-list-search" placeholder="Cari teman...">
+                            <input type="text" class="form-control border border-primary" id="friend-list-search" placeholder="Cari teman...">
                             <button class="btn btn-outline-primary" type="button" id="search-friend-btn"><i class="bi bi-search"></i></button>
                         </div>
                         <div id="friend-list-container">
@@ -751,7 +755,7 @@ $(document).ready(function() {
                                 <div class="flex-grow-1">
                                     <strong>   ${friend.name}</strong>
                                     <span class="last-seen">${lastSeen.includes('Last seen') ? lastSeen : (lastSeen ? `<span class="status-dot offline"></span>Last seen: ${lastSeen}` : '<span class="status-dot online"></span>Online')}</span>
-                                    <div class="latest-message text-muted small">${latestMessage}</div>
+                                    
                                 </div>
                             </div>
                         </div>`;

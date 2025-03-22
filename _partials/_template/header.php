@@ -21,17 +21,7 @@
                     <i class="bi bi-fingerprint text-yellow-400"></i> Mal +
                 </a>
                 <div class="hidden md:flex space-x-6 items-center">
-                    <a href="index.php?page=home" class="text-white text-lg hover:text-yellow-400 transition duration-300">Home</a>
-                    <a href="#" class="text-white text-lg hover:text-yellow-400 transition duration-300">Pricing</a>
-                    <a href="#" class="text-white text-lg hover:text-yellow-400 transition duration-300">AI Products</a>
-                    <div class="relative group">
-                        <a href="#" class="text-white text-lg hover:text-yellow-400 transition duration-300">Documentation</a>
-                        <div class="absolute hidden group-hover:block bg-white shadow-lg rounded-md mt-2">
-                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">API Integrations</a>
-                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Embedded AI Chatbots</a>
-                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Cloud Datasets</a>
-                        </div>
-                    </div>
+                    
                     <!-- User Section -->
                     <?php
                     include_once './config/db.php';
@@ -43,18 +33,32 @@
                             ? './upload/image/' . $currentUser['profile_image'] 
                             : './image/robot-ai.png';
                     ?>
+                     <a href="index.php?page=admin_dashboard" class="text-white text-lg hover:text-yellow-400 transition duration-300">Dashboard</a>
                         <div class="relative group">
+                    
                             <button class="bg-yellow-400 text-black font-bold px-4 py-2 rounded-full flex items-center hover:bg-yellow-500 transition duration-300">
                                 <img src="<?php echo $profileImage; ?>" alt="Profile" class="profile-img h-8 w-8 mr-2">
                                 <span><?php echo htmlspecialchars($currentUser['name']); ?></span>
                             </button>
                             <div class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md mt-2">
+                            <a href="index.php?page=admin_dashboard" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Dashboard</a>
                                 <a href="index.php?page=profile" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Profile</a>
                                 <a href="index.php?page=change_password" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Change Password</a>
                                 <a href="index.php?page=logout" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Logout</a>
                             </div>
                         </div>
                     <?php } else { ?>
+                        <a href="index.php?page=home" class="text-white text-lg hover:text-yellow-400 transition duration-300">Home</a>
+                    <a href="#" class="text-white text-lg hover:text-yellow-400 transition duration-300">Pricing</a>
+                    <a href="#" class="text-white text-lg hover:text-yellow-400 transition duration-300">AI Products</a>
+                    <div class="relative group">
+                        <a href="#" class="text-white text-lg hover:text-yellow-400 transition duration-300">Documentation</a>
+                        <div class="absolute hidden group-hover:block bg-white shadow-lg rounded-md mt-2">
+                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">API Integrations</a>
+                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Embedded AI Chatbots</a>
+                            <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Cloud Datasets</a>
+                        </div>
+                    </div>
                         <a href="index.php?page=login" class="bg-blue-400 text-black font-bold px-4 py-2 rounded-full hover:bg-blue-500 transition duration-300 flex items-center">
                             Masuk Sekarang <i class="bi bi-arrow-right ml-2"></i>
                         </a>

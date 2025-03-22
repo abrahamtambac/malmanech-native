@@ -141,16 +141,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_meeting_details' && isset
         <div class="card-widget border">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bolder">Meeting Saya</h5>
-                <div>
-        <select id="filterPlatform" class="form-select form-select-sm" style="width: auto; display: inline-block;">
+                
+    <select id="filterPlatform" class="form-select form-select-sm" style="width: auto; display: inline-block;">
             <option value="all">Semua Platform</option>
             <option value="zoom">Zoom</option>
             <option value="google">Google Meet</option>
         </select>
-        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addMeetingModal">
-            <i class="bi bi-plus"></i> Tambah Meeting
-        </button>
-    </div>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addMeetingModal">
                     <i class="bi bi-plus"></i> Tambah Meeting
                 </button>
