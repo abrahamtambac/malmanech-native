@@ -1,5 +1,6 @@
 <?php
 include './config/db.php';
+include '_partials/_template/header.php'; // Panggil header
 
 $message = '';
 $status = 'info';
@@ -38,18 +39,21 @@ if (isset($_GET['token'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Starvee - Verify Email</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+    <title>Malmanech - Verify Email</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Google Fonts (Roboto) -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            background-color: #f5f7fa;
         }
         .card-hover:hover {
             transform: translateY(-4px);
@@ -58,15 +62,24 @@ if (isset($_GET['token'])) {
     </style>
 </head>
 <body>
-    <div class="max-w-md w-full bg-white border border-gray-200 rounded-lg shadow-sm p-8 dark:bg-gray-800 dark:border-gray-700 card-hover">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Email Verification</h2>
-        <div class="bg-<?php echo $status === 'success' ? 'green' : 'red'; ?>-500 text-white rounded-lg p-4 mb-6 text-center text-sm">
-            <?php echo $message; ?>
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-sm p-4 mt-5 card-hover">
+                    <h2 class="text-center fw-bold mb-4">Email Verification</h2>
+                    <div class="alert <?php echo $status === 'success' ? 'alert-success' : 'alert-danger'; ?> text-center" role="alert">
+                        <?php echo $message; ?>
+                    </div>
+                    <p class="text-center text-muted">
+                        <a href="../index.php?page=login" class="text-primary fw-semibold text-decoration-none">Go to Login</a>
+                    </p>
+                </div>
+            </div>
         </div>
-        <p class="text-center text-gray-600 text-sm dark:text-gray-400">
-            <a href="../index.php?page=login" class="text-blue-700 font-semibold hover:text-yellow-500 dark:text-blue-500 dark:hover:text-yellow-400">Go to Login</a>
-        </p>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

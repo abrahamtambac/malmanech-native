@@ -10,7 +10,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="./_partials/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
     <style>
      body {
   font-family: 'Product Sans';
@@ -270,67 +270,70 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarScroll">
-                <ul class="navbar-nav me-3 my-2 my-lg-0 navbar-nav-scroll">
-                    <!-- Previous nav items remain the same -->
-                </ul>
-                <?php
-                include_once './config/db.php';
-                include_once './controllers/AuthController.php';
-                include_once './controllers/ChatController.php';
-                
-                $auth = new AuthController($conn);
-                $chatController = new ChatController($conn);
-                $currentUser = $auth->getCurrentUser();
+    <ul class="navbar-nav me-3 my-2 my-lg-0 navbar-nav-scroll">
+        <!-- Previous nav items remain the same -->
+    </ul>
+    <?php
+    include_once './config/db.php';
+    include_once './controllers/AuthController.php';
+    include_once './controllers/ChatController.php';
+    
+    $auth = new AuthController($conn);
+    $chatController = new ChatController($conn);
+    $currentUser = $auth->getCurrentUser();
 
-                if ($currentUser) {
-                    $profileImage = !empty($currentUser['profile_image']) 
-                        ? './upload/image/' . $currentUser['profile_image'] 
-                        : './image/robot-ai.png';
-                    $pendingRequests = $chatController->getPendingRequests($_SESSION['user_id']);
-                    $pendingCount = count($pendingRequests);
-                    $friends = $chatController->getFriends($_SESSION['user_id']);
-                    $userId = $_SESSION['user_id'];
-                    $totalUnread = array_sum(array_map(function($friend) use ($chatController, $userId) {
-                        return $chatController->getUnreadCount($userId, $friend['id']);
-                    }, $friends));
-                ?>
-                    <div class="d-flex align-items-center me-3">
-                        <a href="#" class="text-white me-3 position-relative" id="chat-toggle">
-                            <i class="bi bi-chat-dots fs-4"></i>
-                            <?php if ($totalUnread > 0): ?>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="chat-badge">
-                                    <?php echo $totalUnread; ?>
-                                </span>
-                            <?php endif; ?>
-                        </a>
-                        <a href="#" class="text-white me-3 position-relative" id="friend-request-toggle" data-bs-toggle="modal" data-bs-target="#friendRequestModal">
-                            <i class="bi bi-person-plus fs-4"></i>
-                            <?php if ($pendingCount > 0): ?>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="friend-request-badge">
-                                    <?php echo $pendingCount; ?>
-                                </span>
-                            <?php endif; ?>
-                        </a>
-                        <div class="dropdown">
-                            <a class="btn btn-warning fw-bolder" href="#" role="button" 
-                               data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 20px;">
-                                <img src="<?php echo $profileImage; ?>" alt="Profile" class="profile-img" style="height:35px;width:35px;">
-                                <span><?php echo htmlspecialchars($currentUser['name']); ?></span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="index.php?page=profile">Profile</a></li>
-                                <li><a class="dropdown-item" href="index.php?page=change_password">Change Password</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="index.php?page=logout">Logout</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                <?php } else { ?>
-                    <a href="index.php?page=login" class="btn btn-warning fw-bolder" style="border-radius: 20px;">
-                        Login Now Buddy <i class="bi bi-arrow-right"></i>
-                    </a>
-                <?php } ?>
+    if ($currentUser) {
+        $profileImage = !empty($currentUser['profile_image']) 
+            ? './upload/image/' . $currentUser['profile_image'] 
+            : './image/robot-ai.png';
+        $pendingRequests = $chatController->getPendingRequests($_SESSION['user_id']);
+        $pendingCount = count($pendingRequests);
+        $friends = $chatController->getFriends($_SESSION['user_id']);
+        $userId = $_SESSION['user_id'];
+        $totalUnread = array_sum(array_map(function($friend) use ($chatController, $userId) {
+            return $chatController->getUnreadCount($userId, $friend['id']);
+        }, $friends));
+    ?>
+        <div class="d-flex align-items-center me-3">
+            <a href="#" class="text-white me-3 position-relative" id="chat-toggle">
+                <i class="bi bi-chat-dots fs-4"></i>
+                <?php if ($totalUnread > 0): ?>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="chat-badge">
+                        <?php echo $totalUnread; ?>
+                    </span>
+                <?php endif; ?>
+            </a>
+            <a href="#" class="text-white me-3 position-relative" id="friend-request-toggle" data-bs-toggle="modal" data-bs-target="#friendRequestModal">
+                <i class="bi bi-person-plus fs-4"></i>
+                <?php if ($pendingCount > 0): ?>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="friend-request-badge">
+                        <?php echo $pendingCount; ?>
+                    </span>
+                <?php endif; ?>
+            </a>
+            <div class="dropdown">
+                <button class="btn btn-warning fw-bolder dropdown-toggle d-flex align-items-center" 
+                        type="button" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false" 
+                        style="border-radius: 20px;">
+                    <img src="<?php echo $profileImage; ?>" alt="Profile" class="profile-img me-2" style="height:35px;width:35px;border-radius:50%;">
+                    <span><?php echo htmlspecialchars($currentUser['name']); ?></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="index.php?page=profile">Profile</a></li>
+                    <li><a class="dropdown-item" href="index.php?page=change_password">Change Password</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="index.php?page=logout">Logout</a></li>
+                </ul>
             </div>
+        </div>
+    <?php } else { ?>
+        <a href="index.php?page=login" class="btn btn-warning fw-bolder d-flex align-items-center" style="border-radius: 20px;">
+            Login Now <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+    <?php } ?>
+</div>
         </div>
     </nav>
 
