@@ -12,10 +12,11 @@
     <link rel="stylesheet" href="./_partials/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
     <style>
-     body {
-        font-family: 'Product Sans';
-        src: url('./fonts/ProductSans-Regular.ttf') format('truetype');
-     }
+    body {
+            font-family: 'Product Sans';
+            src: url('./fonts/ProductSans-Regular.ttf') format('truetype');
+        }
+
         .dashboard-container {
             padding: 20px;
             max-width: 1200px;

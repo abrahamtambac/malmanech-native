@@ -128,6 +128,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_classroom'])) {
     }
 }
 
+// Proses edit classroom
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_classroom'])) {
+    $classroom_id = $_POST['classroom_id'];
+    $title = $_POST['classroom_title'];
+    $description = $_POST['classroom_description'];
+    $image = $_FILES['classroom_image'] ?? null;
+
+    // Ambil data classroom saat ini untuk mendapatkan gambar lama
+    $stmt = $conn->prepare("SELECT classroom_image FROM tb_classrooms WHERE id = ? AND creator_id = ?");
+    $stmt->bind_param("ii", $classroom_id, $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    $current_image = $result['classroom_image'];
+    $new_image = $current_image; // Default ke gambar lama
+
+    // Proses upload gambar baru jika ada
+    if ($image && $image['error'] != UPLOAD_ERR_NO_FILE) {
+        $uploadDir = './upload/classroom/';
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        $fileName = uniqid() . '-' . basename($image['name']);
+        $targetFile = $uploadDir . $fileName;
+        if (move_uploaded_file($image['tmp_name'], $targetFile)) {
+            $new_image = $fileName;
+            // Hapus gambar lama jika ada
+            if ($current_image && file_exists($uploadDir . $current_image)) {
+                unlink($uploadDir . $current_image);
+            }
+        }
+    }
+
+    // Update data classroom di database
+    $stmt = $conn->prepare("UPDATE tb_classrooms SET title = ?, description = ?, classroom_image = ? WHERE id = ? AND creator_id = ?");
+    $stmt->bind_param("sssii", $title, $description, $new_image, $classroom_id, $_SESSION['user_id']);
+    if ($stmt->execute()) {
+        header("Location: index.php?page=admin_dashboard&classroom_updated=1");
+        exit();
+    } else {
+        $classroom_error = "Tidak dapat mengupdate classroom.";
+    }
+    $stmt->close();
+}
+
 // AJAX handler untuk pencarian pengguna
 if (isset($_GET['action']) && $_GET['action'] === 'search_users' && isset($_GET['query'])) {
     ob_clean();
@@ -156,6 +202,24 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_meeting_details' && isset
         echo json_encode($response);
     } else {
         echo json_encode(['error' => 'Meeting tidak ditemukan']);
+    }
+    exit();
+}
+
+// AJAX handler untuk detail classroom
+if (isset($_GET['action']) && $_GET['action'] === 'get_classroom_details' && isset($_GET['classroom_id'])) {
+    ob_clean();
+    $classroom_id = $_GET['classroom_id'];
+    $stmt = $conn->prepare("SELECT title, description, classroom_image FROM tb_classrooms WHERE id = ? AND creator_id = ?");
+    $stmt->bind_param("ii", $classroom_id, $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    header('Content-Type: application/json');
+    if ($result) {
+        echo json_encode($result);
+    } else {
+        echo json_encode(['error' => 'Classroom tidak ditemukan']);
     }
     exit();
 }
@@ -292,43 +356,42 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
                        <img src="./image/meeting-illustration.jpg" alt="Classroom Icon" class="rounded-circle me-2"
                        style="width: 300px; height: 300px; object-fit: cover;"></center>
                 </div>
-            <div class="col-md-6">
-                <form method="POST" class="mb-3">
-                    <div class="input-group">
-                        <input type="text" name="class_code" class="form-control shadow-sm" placeholder="Masukkan kode classroom..." style="border-radius: 10px 0 0 10px;" required>
-                        <button type="submit" name="search_classroom" class="btn btn-primary shadow-sm" style="border-radius: 0 10px 10px 0;">Cari</button>
-                    </div>
-                </form>
-                <?php if ($searchClassroomError): ?>
-                    <div class="alert alert-danger text-center shadow-sm" style="border-radius: 10px;">
-                        <?php echo $searchClassroomError; ?>
-                    </div>
-                <?php elseif ($searchedClassroom): ?>
-                    <div class="card border rounded p-3 alert alert-primary shadow-sm" style="border-radius: 15px;">
-                        <div class="d-flex align-items-center">
-                            <img src="<?php echo $searchedClassroom['classroom_image'] ? './upload/classroom/' . $searchedClassroom['classroom_image'] : './image/classroom_icon.png'; ?>" 
-                                 alt="Classroom Icon" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
-                            <div class="flex-grow-1">
-                                <a href="index.php?page=classroom&classroom_id=<?php echo $searchedClassroom['id']; ?>" class="text-dark fw-bold text-decoration-none">
-                                    <?php echo htmlspecialchars($searchedClassroom['title']); ?>
-                                </a>
-                                <p class="text-muted small mb-1"><?php echo htmlspecialchars($searchedClassroom['description']); ?></p>
-                                <small class="text-muted">Kode: <?php echo $searchedClassroom['class_code']; ?></small>
-                            </div>
-                            <div class="ms-2">
-                                <a href="index.php?page=classroom&classroom_id=<?php echo $searchedClassroom['id']; ?>" class="btn btn-sm btn-primary shadow-sm" style="border-radius: 10px;">Kunjungi</a>
+                <div class="col-md-6">
+                    <form method="POST" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" name="class_code" class="form-control shadow-sm" placeholder="Masukkan kode classroom..." style="border-radius: 10px 0 0 10px;" required>
+                            <button type="submit" name="search_classroom" class="btn btn-primary shadow-sm" style="border-radius: 0 10px 10px 0;">Cari</button>
+                        </div>
+                    </form>
+                    <?php if ($searchClassroomError): ?>
+                        <div class="alert alert-danger text-center shadow-sm" style="border-radius: 10px;">
+                            <?php echo $searchClassroomError; ?>
+                        </div>
+                    <?php elseif ($searchedClassroom): ?>
+                        <div class="card border rounded p-3 alert alert-primary shadow-sm" style="border-radius: 15px;">
+                            <div class="d-flex align-items-center">
+                                <img src="<?php echo $searchedClassroom['classroom_image'] ? './upload/classroom/' . $searchedClassroom['classroom_image'] : './image/classroom_icon.png'; ?>" 
+                                     alt="Classroom Icon" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <a href="index.php?page=classroom&classroom_id=<?php echo $searchedClassroom['id']; ?>" class="text-dark fw-bold text-decoration-none">
+                                        <?php echo htmlspecialchars($searchedClassroom['title']); ?>
+                                    </a>
+                                    <p class="text-muted small mb-1"><?php echo htmlspecialchars($searchedClassroom['description']); ?></p>
+                                    <small class="text-muted">Kode: <?php echo $searchedClassroom['class_code']; ?></small>
+                                </div>
+                                <div class="ms-2">
+                                    <a href="index.php?page=classroom&classroom_id=<?php echo $searchedClassroom['id']; ?>" class="btn btn-sm btn-primary shadow-sm" style="border-radius: 10px;">Kunjungi</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                <?php elseif (isset($_POST['search_classroom'])): ?>
-                    <div class="alert alert-danger text-center shadow-sm" style="border-radius: 10px;">
-                        Classroom dengan kode tersebut tidak ditemukan.
-                    </div>
-                <?php endif; ?>
+                    <?php elseif (isset($_POST['search_classroom'])): ?>
+                        <div class="alert alert-danger text-center shadow-sm" style="border-radius: 10px;">
+                            Classroom dengan kode tersebut tidak ditemukan.
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
-        </div>
-        
     </div>
 
     <!-- Classroom Saya & Classroom yang Diikuti -->
@@ -364,6 +427,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
                                         </div>
                                         <div class="ms-2 d-flex gap-2">
                                             <button class="btn btn-sm btn-outline-primary copy-link shadow-sm" data-link="<?php echo $classroom['class_link']; ?>" style="border-radius: 8px;">Copy Link</button>
+                                            <button class="btn btn-sm btn-outline-warning edit-classroom shadow-sm" data-classroom-id="<?php echo $classroom['id']; ?>" data-bs-toggle="modal" data-bs-target="#editClassroomModal" style="border-radius: 8px;">Edit</button>
                                             <button class="btn btn-sm btn-outline-danger delete-classroom shadow-sm" data-classroom-id="<?php echo $classroom['id']; ?>" style="border-radius: 8px;">Hapus</button>
                                         </div>
                                     </div>
@@ -565,6 +629,39 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
     </div>
 </div>
 
+<!-- Modal Edit Classroom -->
+<div class="modal fade" id="editClassroomModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px;">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Classroom</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="classroom_id" id="editClassroomId">
+                    <div class="mb-3">
+                        <label class="form-label">Judul Classroom</label>
+                        <input type="text" name="classroom_title" id="editClassroomTitle" class="form-control shadow-sm" style="border-radius: 10px;" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea name="classroom_description" id="editClassroomDescription" class="form-control shadow-sm" rows="3" style="border-radius: 10px;"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gambar Classroom</label>
+                        <input type="file" name="classroom_image" class="form-control shadow-sm" accept="image/*" style="border-radius: 10px;">
+                        <small class="text-muted">Biarkan kosong jika tidak ingin mengganti gambar.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" name="edit_classroom" class="btn btn-primary shadow-sm" style="border-radius: 10px;">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Tambah Meeting -->
 <div class="modal fade" id="addMeetingModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -644,6 +741,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
                                 </div>
                                 <div class="ms-2 d-flex gap-2">
                                     <button class="btn btn-sm btn-outline-primary copy-link shadow-sm" data-link="<?php echo $classroom['class_link']; ?>" style="border-radius: 8px;">Copy Link</button>
+                                    <button class="btn btn-sm btn-outline-warning edit-classroom shadow-sm" data-classroom-id="<?php echo $classroom['id']; ?>" data-bs-toggle="modal" data-bs-target="#editClassroomModal" style="border-radius: 8px;">Edit</button>
                                     <button class="btn btn-sm btn-outline-danger delete-classroom shadow-sm" data-classroom-id="<?php echo $classroom['id']; ?>" style="border-radius: 8px;">Hapus</button>
                                 </div>
                             </div>
@@ -816,6 +914,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Edit classroom
+    document.querySelectorAll('.edit-classroom').forEach(button => {
+        button.addEventListener('click', function() {
+            const classroomId = this.getAttribute('data-classroom-id');
+            fetch('index.php?page=admin_dashboard&action=get_classroom_details&classroom_id=' + classroomId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    document.getElementById('editClassroomId').value = classroomId;
+                    document.getElementById('editClassroomTitle').value = data.title;
+                    document.getElementById('editClassroomDescription').value = data.description;
+                })
+                .catch(error => {
+                    console.error('Error fetching classroom details:', error);
+                    alert('Gagal mengambil data classroom.');
+                });
+        });
+    });
+
     // Search My Classrooms
     document.getElementById('myClassroomSearchButton').addEventListener('click', function() {
         const query = document.getElementById('myClassroomSearch').value;
@@ -842,6 +962,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                     <div class="ms-2 d-flex gap-2">
                                         <button class="btn btn-sm btn-outline-primary copy-link shadow-sm" data-link="${classroom.class_link}" style="border-radius: 8px;">Copy Link</button>
+                                        <button class="btn btn-sm btn-outline-warning edit-classroom shadow-sm" data-classroom-id="${classroom.id}" data-bs-toggle="modal" data-bs-target="#editClassroomModal" style="border-radius: 8px;">Edit</button>
                                         <button class="btn btn-sm btn-outline-danger delete-classroom shadow-sm" data-classroom-id="${classroom.id}" style="border-radius: 8px;">Hapus</button>
                                     </div>
                                 </div>
@@ -986,6 +1107,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                     <div class="ms-2 d-flex gap-2">
                                         <button class="btn btn-sm btn-outline-primary copy-link shadow-sm" data-link="${classroom.class_link}" style="border-radius: 8px;">Copy Link</button>
+                                        <button class="btn btn-sm btn-outline-warning edit-classroom shadow-sm" data-classroom-id="${classroom.id}" data-bs-toggle="modal" data-bs-target="#editClassroomModal" style="border-radius: 8px;">Edit</button>
                                         <button class="btn btn-sm btn-outline-danger delete-classroom shadow-sm" data-classroom-id="${classroom.id}" style="border-radius: 8px;">Hapus</button>
                                     </div>
                                 </div>
@@ -1093,7 +1215,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <small class="text-muted">${meeting.platform === 'Luring' ? 'Luring' : meeting.platform.charAt(0).toUpperCase() + meeting.platform.slice(1)} | Oleh: ${meeting.creator}</small>
                                     </div>
                                     <div class="ms-2">
-                                        <button class="btn btn-sm btn-primary view-meeting shadow-sm" data-meeting-id="${meeting.id}" style="border-radius: 8px;">Lihat</button>                                    </div>
+                                        <button class="btn btn-sm btn-primary view-meeting shadow-sm" data-meeting-id="${meeting.id}" style="border-radius: 8px;">Lihat</button>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -1184,44 +1307,4 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-right: 5px;
 }
 .status-dot.online {
-    background-color: #28a745;
-}
-.status-dot.offline {
-    background-color: #dc3545;
-}
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-    transition: background-color 0.3s ease;
-}
-.btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
-.btn-outline-primary {
-    border-color: #007bff;
-    color: #007bff;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.btn-outline-primary:hover {
-    background-color: #007bff;
-    color: #fff;
-}
-.btn-outline-danger {
-    border-color: #dc3545;
-    color: #dc3545;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.btn-outline-danger:hover {
-    background-color: #dc3545;
-    color: #fff;
-}
-.form-control, .form-select {
-    border-radius: 10px;
-    transition: border-color 0.3s ease;
-}
-.form-control:focus, .form-select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-}
-</style>
+    background-color: #
