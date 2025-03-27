@@ -337,9 +337,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
                 </div>
             </div>
         </div>
-        <div class="col-auto">
-            <a href="index.php?page=logout" class="btn btn-outline-danger shadow-sm"><i class="bi bi-box-arrow-right fs-4"></i> Keluar</a>
-        </div>
+      
     </div>
 
     <!-- Informasi Penting -->
