@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 
-<body>
+
     <?php include '_partials/_template/header.php'; ?>
 
     <div class="container">

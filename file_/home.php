@@ -279,7 +279,7 @@
     <div class="container position-relative" style="max-width: 1280px;">
         <a href="index.php?page=register" class="btn btn-primary mb-3">
             <img src="./image/save_money.png" alt="Promo" style="width: 50px; vertical-align: middle; margin-right: 8px;">
-            Simpang Uangmu, Kita Lagi Gratis !!!
+            Simpan Uangmu, Kita Lagi Gratis !!!
         </a>
         <h1 class="display-4">Kolaborasi Tim yang Lebih Mudah dengan <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Malmanech</span></h1>
         <p class="lead">Kelola rapat, chat, dan laporan dalam satu platform modern yang dirancang untuk produktivitas maksimal.</p>
@@ -379,6 +379,7 @@
         <p class="text-center mb-0">© 2025 Malmanech. All rights reserved.</p>
     </div>
 </footer>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
