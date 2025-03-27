@@ -387,7 +387,7 @@
                         </div>
                     </div>
                 <?php } else { ?>
-                    <a class="dropdown-item text-white" href="index.php?page=admin_dashboard" style="font-size: 20px;">Dashboard</a>
+                   
                     <a href="index.php?page=login" class="btn btn-warning fw-bolder d-flex align-items-center"
                         style="border-radius: 20px;">
                         Login <i class="bi bi-arrow-right ms-2"></i>
