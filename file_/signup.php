@@ -2,18 +2,6 @@
 include './config/db.php';
 include '_partials/_template/header.php'; // Panggil header
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require './vendor/autoload.php'; // Sesuaikan path jika perlu
-
-// Fungsi untuk mengirim email verifikasi
-function sendVerificationEmail($to, $name, $token) {
-    $command = "php -f " . __DIR__ . "/send_email.php " . escapeshellarg($to) . " " . escapeshellarg($name) . " " . escapeshellarg($token) . " > /dev/null 2>&1 &";
-    exec($command);
-    return true; // Asumsikan sukses karena dijalankan di latar belakang
-}
-
 $show_success_modal = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -68,17 +56,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "You must agree to the terms and conditions!";
     }
 
-    // Jika tidak ada error, simpan ke database dan kirim email verifikasi
+    // Jika tidak ada error, simpan ke database
     if (empty($errors)) {
         $password_hashed = password_hash($password, PASSWORD_DEFAULT);
-        $verification_token = bin2hex(random_bytes(16));
-        $is_verified = 0;
+        $verification_token = bin2hex(random_bytes(16)); // Still generate a token, but it won't be used
+        $is_verified = 1; // Set to 1 to auto-verify the account
 
         $stmt = $conn->prepare("INSERT INTO tb_users (name, email, password, role_id, verification_token, is_verified) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("sssisi", $name, $email, $password_hashed, $role_id, $verification_token, $is_verified);
         
         if ($stmt->execute()) {
-            sendVerificationEmail($email, $name, $verification_token);
             $show_success_modal = true;
         } else {
             $errors[] = "Registration failed! Please try again.";
@@ -88,28 +75,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
+<style>
+    @font-face {
+        font-family: 'Product Sans';
+      
+        font-weight: normal;
+        font-style: normal;
+    }
 
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f7fa;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        }
-        .input-focus:focus {
-            background-color: #fff;
-            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
-            border-color: #0d6efd;
-        }
-        .form-control {
-            background-color: #f8f9fa;
-        }
-    </style>
+    @font-face {
+        font-family: 'Product Sans';
+        
+        font-weight: bold;
+        font-style: normal;
+    }
+
+    body {
+        font-family: 'Product Sans', sans-serif;
+        background-color: #f5f7fa;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    .input-focus:focus {
+        background-color: #fff;
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
+        border-color: #0d6efd;
+    }
+    .form-control {
+        background-color: #f8f9fa;
+    }
+</style>
 </head>
 <body>
     <!-- Main Content -->
@@ -208,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="modal-body text-center">
                     <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
-                    <p class="mt-3">Your account has been created! A verification email has been sent to your inbox.</p>
+                    <p class="mt-3">Your account has been created! You can now log in.</p>
                 </div>
                 <div class="modal-footer border-0 justify-content-center">
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="window.location.href='index.php?page=login'">
