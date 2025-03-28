@@ -326,6 +326,11 @@
         .message .file-download i {
             margin-right: 5px;
         }
+        #video-container video {
+    border: 2px solid #007bff;
+    background: #000;
+    object-fit: cover;
+}
     </style>
 </head>
 

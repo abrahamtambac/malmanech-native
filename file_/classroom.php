@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity']) && $i
             $file_name = $fileName;
         }
     } else {
-        $file_name = $content; // Jika link, simpan sebagai file_name
+        $file_name = $content;
     }
 
     $stmt = $conn->prepare("INSERT INTO tb_classroom_activities (classroom_id, title, description, file_name, is_link, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_activity']) &&
     $stmt->bind_param("ii", $activity_id, $user_id);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_row();
-    if ($result[0] == 0) { // Hanya izinkan jika belum upload
+    if ($result[0] == 0) {
         $file = $_FILES['submission_file'];
         $uploadDir = "./upload/mahasiswa/activity/{$user_id}/";
         if (!file_exists($uploadDir)) {
@@ -156,19 +156,86 @@ foreach ($activities as $activity) {
         <div class="col-12 mb-4">
             <div class="card border shadow-sm" style="border-radius: 15px;">
                 <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <img src="<?php echo $classroom['classroom_image'] ? './upload/classroom/' . $classroom['classroom_image'] : './image/classroom_icon.png'; ?>" 
-                             alt="Classroom Icon" class="rounded-circle me-3 border border-primary border-2 shadow-sm" style="width: 80px; height: 80px; object-fit: cover;">
-                        <div>
-                            <h1 class="fw-bolder mb-1 text-dark"><?php echo htmlspecialchars($classroom['title']); ?></h1>
-                            <p class="text-muted mb-1"><?php echo htmlspecialchars($classroom['description']); ?></p>
-                            <small class="text-muted">Class Code: <span class="badge bg-primary-subtle text-primary"><?php echo $classroom['class_code']; ?></span> | Created by: <span class="badge bg-success-subtle text-success"><?php echo $classroom['creator_name']; ?></span></small>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <img src="<?php echo $classroom['classroom_image'] ? './upload/classroom/' . $classroom['classroom_image'] : './image/classroom_icon.png'; ?>" 
+                                 alt="Classroom Icon" class="rounded-circle me-3 border border-primary border-2 shadow-sm" style="width: 80px; height: 80px; object-fit: cover;">
+                            <div>
+                                <h1 class="fw-bolder mb-1 text-dark"><?php echo htmlspecialchars($classroom['title']); ?></h1>
+                                <p class="text-muted mb-1"><?php echo htmlspecialchars($classroom['description']); ?></p>
+                                <small class="text-muted">Class Code: <span class="badge bg-primary-subtle text-primary"><?php echo $classroom['class_code']; ?></span> | Created by: <span class="badge bg-success-subtle text-success"><?php echo $classroom['creator_name']; ?></span></small>
+                            </div>
                         </div>
+                        <?php if ($isMember && $isLecturer): ?>
+                            <button class="btn btn-success shadow-sm" id="start-video-call" data-classroom-id="<?php echo $classroom_id; ?>" style="border-radius: 10px;">
+                                <i class="bi bi-camera-video"></i> Start Video Call
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($isMember && !$isLecturer): ?>
+                        <div id="meeting-notification" class="alert alert-info mt-3 d-none" role="alert" style="border-radius: 10px;">
+                            <span id="meeting-message"></span>
+                            <button class="btn btn-sm btn-primary ms-2" id="join-meeting-btn">Join Now</button>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Call Modal -->
+        <div class="modal fade" id="videoCallModal" tabindex="-1" aria-labelledby="videoCallModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 15px;">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="videoCallModalLabel">Video Call - <?php echo htmlspecialchars($classroom['title']); ?></h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0 d-flex">
+                        <!-- Sidebar Peserta -->
+                        <div id="participant-sidebar" class="bg-light p-3" style="width: 250px; height: 60vh; overflow-y: auto; border-right: 1px solid #ddd;">
+                            <h6 class="fw-bold">Peserta</h6>
+                            <ul id="participant-list" class="list-unstyled"></ul>
+                        </div>
+                        <!-- Video Container -->
+                        <div id="video-container" class="flex-grow-1 d-flex flex-wrap justify-content-center" style="background: #f0f2f5; height: 60vh; overflow-y: auto;">
+                            <!-- Screen Share Container -->
+                            <div id="screen-share-container" class="w-100 d-none" style="height: 50%; margin-bottom: 10px;">
+                                <video id="screen-share-video" autoplay playsinline class="w-100 h-100" style="border: 2px solid #ff5733; border-radius: 10px;"></video>
+                                <span id="screen-share-label" class="video-label" style="background: rgba(255, 87, 51, 0.7);"></span>
+                            </div>
+                            <!-- Participant Videos -->
+                            <div id="participant-videos" class="d-flex flex-wrap justify-content-center w-100" style="height: 50%; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div id="video-controls" class="me-auto d-flex align-items-center">
+                            <button class="btn btn-outline-secondary rounded-circle me-2 meet-btn" id="mute-audio" title="Mute"><i class="bi bi-mic"></i></button>
+                            <button class="btn btn-outline-secondary rounded-circle me-2 meet-btn" id="disable-video" title="Turn off camera"><i class="bi bi-camera-video"></i></button>
+                            <button class="btn btn-outline-secondary rounded-circle me-2 meet-btn" id="share-screen" title="Share screen"><i class="bi bi-display"></i></button>
+                            <select id="cameraSelect" class="form-select me-2" style="width: auto;"></select>
+                            <select id="micSelect" class="form-select me-2" style="width: auto;"></select>
+                            <canvas id="audioVisualizer" width="100" height="50" class="me-2"></canvas>
+                        </div>
+                        <button class="btn btn-danger shadow-sm" id="end-video-call-btn" style="border-radius: 10px;">End Call</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Toast untuk Join Meeting -->
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="joinToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">Meeting Notification</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <!-- Pesan dan tombol join akan diisi oleh JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Anggota -->
         <div class="col-md-3">
             <div class="card border shadow-sm" style="border-radius: 15px;">
                 <div class="card-body">
@@ -432,100 +499,64 @@ foreach ($activities as $activity) {
     </div>
 </div>
 
+<!-- CSS -->
 <style>
-.card {
-    border-radius: 10px;
-    transition: transform 0.2s ease-in-out;
-}
-.card:hover {
-    transform: translateY(-5px);
-}
-.list-group-item {
-    border: none;
-    padding: 10px;
-    transition: background-color 0.3s ease;
-}
-.list-group-item:hover {
-    background-color: #f1f3f5;
-}
-.list-group-item.disabled {
-    cursor: default;
-    opacity: 0.7;
-}
-.accordion-button {
-    background-color: #f1f3f5;
-    border-radius: 10px !important;
-    transition: background-color 0.3s ease;
-}
-.accordion-button:not(.collapsed) {
-    background-color: #e7f3ff;
-    color: #007bff;
-}
-.alert-success {
-    background-color: #e6ffed;
-    border-color: #b3ffcc;
-    color: #006633;
-}
-.alert-warning {
-    background-color: #fff3cd;
-    border-color: #ffeeba;
-    color: #856404;
-}
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-    transition: background-color 0.3s ease;
-}
-.btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
-.btn-outline-primary {
-    border-color: #007bff;
-    color: #007bff;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.btn-outline-primary:hover {
-    background-color: #007bff;
-    color: #fff;
-}
-.btn-outline-danger {
-    border-color: #dc3545;
-    color: #dc3545;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.btn-outline-danger:hover {
-    background-color: #dc3545;
-    color: #fff;
-}
-.form-control, .form-select {
-    border-radius: 10px;
-    transition: border-color 0.3s ease;
-}
-.form-control:focus, .form-select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-}
-.table {
-    border-radius: 10px;
-    overflow: hidden;
-}
-.table th, .table td {
-    padding: 12px;
-}
+    .card { border-radius: 10px; transition: transform 0.2s ease-in-out; }
+    .card:hover { transform: translateY(-5px); }
+    .list-group-item { border: none; padding: 10px; transition: background-color 0.3s ease; }
+    .list-group-item:hover { background-color: #f1f3f5; }
+    .list-group-item.disabled { cursor: default; opacity: 0.7; }
+    .accordion-button { background-color: #f1f3f5; border-radius: 10px !important; transition: background-color 0.3s ease; }
+    .accordion-button:not(.collapsed) { background-color: #e7f3ff; color: #007bff; }
+    .alert-success { background-color: #e6ffed; border-color: #b3ffcc; color: #006633; }
+    .alert-warning { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
+    .alert-info { background-color: #cce5ff; border-color: #b8daff; color: #004085; }
+    .btn-primary { background-color: #007bff; border-color: #007bff; transition: background-color 0.3s ease; }
+    .btn-primary:hover { background-color: #0056b3; border-color: #0056b3; }
+    .btn-outline-primary { border-color: #007bff; color: #007bff; transition: background-color 0.3s ease, color 0.3s ease; }
+    .btn-outline-primary:hover { background-color: #007bff; color: #fff; }
+    .btn-outline-danger { border-color: #dc3545; color: #dc3545; transition: background-color 0.3s ease, color 0.3s ease; }
+    .btn-outline-danger:hover { background-color: #dc3545; color: #fff; }
+    .form-control, .form-select { border-radius: 10px; transition: border-color 0.3s ease; }
+    .form-control:focus, .form-select:focus { border-color: #007bff; box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); }
+    .table { border-radius: 10px; overflow: hidden; }
+    .table th, .table td { padding: 12px; }
+    #video-container .video-wrapper { position: relative; width: 100%; max-width: 300px; margin: 5px; }
+    #video-container video { width: 100%; border: 2px solid #007bff; background: #000; object-fit: cover; border-radius: 10px; }
+    #video-container .video-label { position: absolute; bottom: 5px; left: 5px; background: rgba(0, 0, 0, 0.7); color: white; padding: 2px 8px; border-radius: 5px; font-size: 0.9em; }
+    .toast-container .toast { border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    #audioVisualizer { background: #f0f2f5; border-radius: 5px; }
+    .meet-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .meet-btn i { font-size: 1.2rem; }
+    #participant-sidebar { background: #f8f9fa; }
+    #participant-list li { padding: 5px 0; }
 </style>
 
-<?php include '_partials/_admin_scripts.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 
+<!-- Variabel Global untuk Video Call -->
+<script>
+    window.userId = <?php echo json_encode($user_id); ?>;
+    window.classroomId = <?php echo json_encode($classroom_id); ?>;
+    window.classroomMembers = <?php echo json_encode(array_column($classroom['members'], 'id')); ?>;
+    window.memberNames = <?php echo json_encode(array_column($classroom['members'], 'name', 'id')); ?>;
+    window.isLecturer = <?php echo json_encode($isLecturer); ?>;
+</script>
+
+<!-- Load Script Video Call -->
+<script src="./js/video_call.js"></script>
+
+<!-- Script Classroom -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Tampilkan modal join saat halaman dimuat jika user belum bergabung
+    // Modal join
     <?php if (!$isMember): ?>
         var joinModal = new bootstrap.Modal(document.getElementById('joinClassModal'), {});
         joinModal.show();
     <?php endif; ?>
 
-    // Handle klik tombol "Ya" di modal join
+    // Handle join
     document.getElementById('confirmJoin').addEventListener('click', function() {
         <?php if ($isLoggedIn): ?>
             var form = document.createElement('form');
@@ -539,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php endif; ?>
     });
 
-    // Handle tombol cari anggota dengan AJAX
+    // Handle search members
     document.getElementById('searchButton').addEventListener('click', function() {
         const query = document.getElementById('memberSearch').value;
         fetch('index.php?page=classroom&action=search_members&classroom_id=<?php echo $classroom_id; ?>&query=' + encodeURIComponent(query))
@@ -569,13 +600,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     memberList.innerHTML += html;
                 });
             })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Gagal mencari anggota. Silakan coba lagi.');
-            });
+            .catch(error => console.error('Error:', error));
     });
 
-    // Handle klik nama student untuk modal activity (hanya dosen)
+    // Handle student activity modal (lecturer only)
     document.querySelectorAll('.list-group-item:not(.disabled)').forEach(item => {
         item.addEventListener('click', function() {
             const userId = this.getAttribute('data-user-id');
@@ -601,10 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         tbody.innerHTML += row;
                     });
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Gagal memuat status aktivitas. Silakan coba lagi.');
-                });
+                .catch(error => console.error('Error:', error));
         });
     });
 
@@ -623,24 +648,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const toast = new bootstrap.Toast(document.getElementById('friendToast'));
                 const toastBody = document.querySelector('#friendToast .toast-body');
                 toastBody.textContent = data.message;
-                if (data.message.includes('berhasil')) {
-                    toastBody.parentElement.classList.remove('bg-danger');
-                    toastBody.parentElement.classList.add('bg-success');
-                } else {
-                    toastBody.parentElement.classList.remove('bg-success');
-                    toastBody.parentElement.classList.add('bg-danger');
-                }
+                toastBody.parentElement.classList.toggle('bg-success', data.message.includes('berhasil'));
+                toastBody.parentElement.classList.toggle('bg-danger', !data.message.includes('berhasil'));
                 toast.show();
             })
-            .catch(error => {
-                console.error('Error:', error);
-                const toast = new bootstrap.Toast(document.getElementById('friendToast'));
-                const toastBody = document.querySelector('#friendToast .toast-body');
-                toastBody.textContent = 'Gagal menambahkan teman. Silakan coba lagi.';
-                toastBody.parentElement.classList.remove('bg-success');
-                toastBody.parentElement.classList.add('bg-danger');
-                toast.show();
-            });
+            .catch(error => console.error('Error:', error));
         });
     });
 });

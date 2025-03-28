@@ -132,5 +132,4 @@ $('#filterPlatform').on('change', function() {
     });
 });
 </script>
-</body>
-</html>
+
