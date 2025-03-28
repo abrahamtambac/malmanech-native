@@ -25,16 +25,31 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`[VideoCall] ${message}`);
     }
 
+    function waitForWebSocket() {
+        return new Promise((resolve) => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                resolve();
+            } else {
+                ws.onopen = () => {
+                    log('WebSocket connected');
+                    resolve();
+                };
+                ws.onerror = (error) => {
+                    log(`WebSocket error during wait: ${error}`);
+                };
+            }
+        });
+    }
+
     function connectWebSocket() {
-        const wsUrl = window.location.hostname === "localhost" 
-            ? 'ws://localhost:8080' 
-            : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8080`;
+        const wsUrl = window.location.protocol === "https:" 
+            ? `wss://${window.location.hostname}:8080` 
+            : `ws://${window.location.hostname}:8080`;
 
         ws = new WebSocket(wsUrl);
 
         ws.onopen = function() {
             ws.send(JSON.stringify({ type: 'register', user_id: userId }));
-            log('WebSocket connected');
             checkOngoingCall();
         };
 
@@ -80,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'participant_joined':
                 if (isCallActive) {
                     updateParticipantList(data.user_id, true);
-                    createPeerConnection(data.user_id, classroomId); // Buat koneksi dengan peserta baru
+                    createPeerConnection(data.user_id, classroomId);
                 }
                 break;
             case 'participant_left':
@@ -169,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setupAudioVisualizer();
             addLocalVideo();
 
+            await waitForWebSocket(); // Tunggu hingga WebSocket terbuka
             ws.send(JSON.stringify({
                 type: 'start_video_call',
                 classroom_id: classroomId,
@@ -203,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 addLocalVideo();
             }
 
+            await waitForWebSocket(); // Tunggu hingga WebSocket terbuka
             ws.send(JSON.stringify({
                 type: 'participant_joined',
                 classroom_id: classroomId,
@@ -246,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function createPeerConnection(memberId, classroomId) {
-        if (peerConnections[memberId]) return; // Hindari duplikat koneksi
+        if (peerConnections[memberId]) return;
 
         const pc = new RTCPeerConnection(configuration);
         peerConnections[memberId] = pc;
@@ -266,7 +283,6 @@ document.addEventListener('DOMContentLoaded', function() {
             video.srcObject = stream;
 
             if (stream.getVideoTracks().length > 0 && stream.getVideoTracks()[0].label.includes('screen')) {
-                // Ini adalah screen share
                 const screenShareVideo = document.getElementById('screen-share-video');
                 screenShareVideo.srcObject = stream;
                 document.getElementById('screen-share-label').textContent = `${memberNames[memberId] || 'Unknown'} (Screen)`;
@@ -274,7 +290,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentScreenSharer = memberId;
                 log(`Screen share video added for User ${memberId}`);
             } else {
-                // Ini adalah kamera
                 const container = document.createElement('div');
                 container.classList.add('video-wrapper');
                 container.innerHTML = `<span class="video-label">${memberNames[memberId] || 'Unknown'}</span>`;
@@ -431,7 +446,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleScreenShare(data) {
         if (data.user_id !== userId && peerConnections[data.user_id]) {
             log(`Screen share received from User ${data.user_id}`);
-            // Ditangani oleh ontrack event
         }
     }
 

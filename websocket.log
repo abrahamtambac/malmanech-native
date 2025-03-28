@@ -1669,3 +1669,65 @@
 [2025-03-28 03:34:08] Checked membership: User 4 is a member of classroom 3
 [2025-03-28 03:34:08] User 17 role in classroom 3: lecturer
 [2025-03-28 03:34:08] Sent ongoing call notification to User 4 for classroom 3, Initiator: 17
+[2025-03-28 03:49:40] ChatServer initialized
+[2025-03-28 03:49:40] New connection established! Resource ID: 55
+[2025-03-28 03:49:40] Message received from Resource ID: 55, Type: register
+[2025-03-28 03:49:40] User 4 registered with Resource ID: 55
+[2025-03-28 03:49:40] Message received from Resource ID: 55, Type: check_call_status
+[2025-03-28 03:49:40] Checked call status for User 4 in classroom 3: No active call
+[2025-03-28 03:49:41] New connection established! Resource ID: 92
+[2025-03-28 03:49:41] Message received from Resource ID: 92, Type: register
+[2025-03-28 03:49:41] User 4 registered with Resource ID: 92
+[2025-03-28 03:49:43] New connection established! Resource ID: 98
+[2025-03-28 03:49:43] Message received from Resource ID: 98, Type: register
+[2025-03-28 03:49:43] User 4 registered with Resource ID: 98
+[2025-03-28 03:49:49] Connection closed! Resource ID: 98
+[2025-03-28 03:50:03] New connection established! Resource ID: 105
+[2025-03-28 03:50:03] Message received from Resource ID: 105, Type: register
+[2025-03-28 03:50:03] Status update sent to Friend ID: 4 for User ID: 17
+[2025-03-28 03:50:03] Status update sent to Friend ID: 4 for User ID: 17
+[2025-03-28 03:50:03] User 17 registered with Resource ID: 105
+[2025-03-28 03:50:03] New connection established! Resource ID: 113
+[2025-03-28 03:50:03] Message received from Resource ID: 113, Type: start_video_call
+[2025-03-28 03:50:03] User  role in classroom 3: None
+[2025-03-28 03:50:03] Error: User  (not lecturer) tried to start video call in classroom 3
+[2025-03-28 03:50:05] Message received from Resource ID: 113, Type: offer
+[2025-03-28 03:50:05] Message relayed to User ID: 4
+[2025-03-28 03:50:05] Relayed offer to User ID: 4 from User ID: 
+[2025-03-28 03:50:05] Message received from Resource ID: 113, Type: ice_candidate
+[2025-03-28 03:50:05] Message relayed to User ID: 4
+[2025-03-28 03:50:05] Relayed ice_candidate to User ID: 4 from User ID: 
+[2025-03-28 03:50:05] Message received from Resource ID: 113, Type: ice_candidate
+[2025-03-28 03:50:05] Message relayed to User ID: 4
+[2025-03-28 03:50:05] Relayed ice_candidate to User ID: 4 from User ID: 
+[2025-03-28 03:50:06] Message received from Resource ID: 113, Type: ice_candidate
+[2025-03-28 03:50:06] Message relayed to User ID: 4
+[2025-03-28 03:50:06] Relayed ice_candidate to User ID: 4 from User ID: 
+[2025-03-28 03:50:06] Message received from Resource ID: 113, Type: ice_candidate
+[2025-03-28 03:50:06] Message relayed to User ID: 4
+[2025-03-28 03:50:06] Relayed ice_candidate to User ID: 4 from User ID: 
+[2025-03-28 03:50:07] Message received from Resource ID: 113, Type: ice_candidate
+[2025-03-28 03:50:07] Message relayed to User ID: 4
+[2025-03-28 03:50:07] Relayed ice_candidate to User ID: 4 from User ID: 
+[2025-03-28 03:50:07] Message received from Resource ID: 113, Type: ice_candidate
+[2025-03-28 03:50:07] Message relayed to User ID: 4
+[2025-03-28 03:50:07] Relayed ice_candidate to User ID: 4 from User ID: 
+[2025-03-28 03:50:11] Message received from Resource ID: 92, Type: status_update
+[2025-03-28 03:50:11] Status update sent to Friend ID: 17 for User ID: 4
+[2025-03-28 03:50:11] Status updated for User ID: 4, Last seen: 2025-03-28 03:50:11
+[2025-03-28 03:50:11] Status update sent to Friend ID: 4 for User ID: 17
+[2025-03-28 03:50:11] Status update sent to Friend ID: 4 for User ID: 17
+[2025-03-28 03:50:11] Connection closed! Resource ID: 105
+[2025-03-28 03:50:11] Connection closed! Resource ID: 113
+[2025-03-28 03:50:11] New connection established! Resource ID: 148
+[2025-03-28 03:50:11] New connection established! Resource ID: 152
+[2025-03-28 03:50:11] Message received from Resource ID: 148, Type: register
+[2025-03-28 03:50:11] Status update sent to Friend ID: 4 for User ID: 17
+[2025-03-28 03:50:11] Status update sent to Friend ID: 4 for User ID: 17
+[2025-03-28 03:50:11] User 17 registered with Resource ID: 148
+[2025-03-28 03:50:11] Message received from Resource ID: 148, Type: check_call_status
+[2025-03-28 03:50:11] Checked call status for User 17 in classroom 3: No active call
+[2025-03-28 03:50:11] Message received from Resource ID: 152, Type: register
+[2025-03-28 03:50:11] Status update sent to Friend ID: 4 for User ID: 17
+[2025-03-28 03:50:11] Status update sent to Friend ID: 4 for User ID: 17
+[2025-03-28 03:50:11] User 17 registered with Resource ID: 152
