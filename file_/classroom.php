@@ -1,9 +1,5 @@
 <?php
-//session_start();
 include_once './controllers/ClassroomController.php';
-include_once './config/db.php';
-
-// Set timezone ke Indonesia
 date_default_timezone_set('Asia/Jakarta');
 
 $classroomController = new ClassroomController($conn);
@@ -12,7 +8,6 @@ $code = $_GET['code'] ?? null;
 $isLoggedIn = isset($_SESSION['user_id']);
 $user_id = $isLoggedIn ? $_SESSION['user_id'] : null;
 
-// Jika ada code, coba cari classroom_id
 if ($code && !$classroom_id) {
     $stmt = $conn->prepare("SELECT id FROM tb_classrooms WHERE class_code = ?");
     $stmt->bind_param("s", $code);
@@ -25,14 +20,12 @@ if ($code && !$classroom_id) {
     }
 }
 
-// Ambil detail classroom
 $classroom = $classroomController->getClassroomDetails($classroom_id);
 if (!$classroom) {
     include 'file_/404/not_found_1.php';
     exit();
 }
 
-// Cek apakah user sudah bergabung dan role-nya
 $isMember = false;
 $isLecturer = false;
 if ($isLoggedIn) {
@@ -45,7 +38,6 @@ if ($isLoggedIn) {
     }
 }
 
-// Proses join classroom
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_class']) && $isLoggedIn) {
     $result = $classroomController->joinClassroom($classroom['class_code']);
     if ($result['success']) {
@@ -54,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_class']) && $isL
     }
 }
 
-// Proses leave classroom
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_class']) && $isLoggedIn && $isMember && !$isLecturer) {
     $stmt = $conn->prepare("DELETE FROM tb_classroom_members WHERE classroom_id = ? AND user_id = ?");
     $stmt->bind_param("ii", $classroom_id, $user_id);
@@ -64,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_class']) && $is
     exit();
 }
 
-// Proses tambah activity (dosen only)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity']) && $isLecturer) {
     $title = $_POST['activity_title'];
     $description = $_POST['activity_description'];
@@ -95,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity']) && $i
     exit();
 }
 
-// Proses upload submission (student, sekali upload)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_activity']) && $isMember && !$isLecturer) {
     $activity_id = $_POST['activity_id'];
     $stmt = $conn->prepare("SELECT COUNT(*) FROM tb_activity_submissions WHERE activity_id = ? AND user_id = ?");
@@ -121,14 +110,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_activity']) &&
     exit();
 }
 
-// Ambil daftar activity
 $stmt = $conn->prepare("SELECT * FROM tb_classroom_activities WHERE classroom_id = ? ORDER BY created_at DESC");
 $stmt->bind_param("i", $classroom_id);
 $stmt->execute();
 $activities = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Ambil submission per activity
 $submissions = [];
 foreach ($activities as $activity) {
     $stmt = $conn->prepare("SELECT s.*, u.name FROM tb_activity_submissions s JOIN tb_users u ON s.user_id = u.id WHERE activity_id = ?");
@@ -142,7 +129,6 @@ foreach ($activities as $activity) {
 <?php include '_partials/_admin_head.php'; ?>
 
 <div class="container-fluid py-4">
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item text-dark"><a class="text-dark" href="index.php?page=home" style="text-decoration: none;">Home</a></li>
@@ -152,7 +138,6 @@ foreach ($activities as $activity) {
     </nav>
 
     <div class="row">
-        <!-- Classroom Header -->
         <div class="col-12 mb-4">
             <div class="card border shadow-sm" style="border-radius: 15px;">
                 <div class="card-body p-4">
@@ -191,19 +176,15 @@ foreach ($activities as $activity) {
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-0 d-flex">
-                        <!-- Sidebar Peserta -->
                         <div id="participant-sidebar" class="bg-light p-3" style="width: 250px; height: 60vh; overflow-y: auto; border-right: 1px solid #ddd;">
                             <h6 class="fw-bold">Peserta</h6>
                             <ul id="participant-list" class="list-unstyled"></ul>
                         </div>
-                        <!-- Video Container -->
-                        <div id="video-container" class="flex-grow-1 d-flex flex-wrap justify-content-center" style="background: #f0f2f5; height: 60vh; overflow-y: auto;">
-                            <!-- Screen Share Container -->
+                        <div id="video-container" class="flex-grow-1" style="background: #f0f2f5; height: 60vh; position: relative; overflow: hidden;">
                             <div id="screen-share-container" class="w-100 d-none" style="height: 50%; margin-bottom: 10px;">
-                                <video id="screen-share-video" autoplay playsinline class="w-100 h-100" style="border: 2px solid #ff5733; border-radius: 10px;"></video>
+                                <video id="screen-share-video" autoplay playsinline class="w-100 h-100" style="border: 2px solid #ff5733; border-radius: 10px; cursor: pointer;"></video>
                                 <span id="screen-share-label" class="video-label" style="background: rgba(255, 87, 51, 0.7);"></span>
                             </div>
-                            <!-- Participant Videos -->
                             <div id="participant-videos" class="d-flex flex-wrap justify-content-center w-100" style="height: 50%; overflow-y: auto;"></div>
                         </div>
                     </div>
@@ -222,20 +203,16 @@ foreach ($activities as $activity) {
             </div>
         </div>
 
-        <!-- Toast untuk Join Meeting -->
         <div class="toast-container position-fixed bottom-0 end-0 p-3">
             <div id="joinToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header">
                     <strong class="me-auto">Meeting Notification</strong>
                     <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
-                <div class="toast-body">
-                    <!-- Pesan dan tombol join akan diisi oleh JavaScript -->
-                </div>
+                <div class="toast-body"></div>
             </div>
         </div>
 
-        <!-- Anggota -->
         <div class="col-md-3">
             <div class="card border shadow-sm" style="border-radius: 15px;">
                 <div class="card-body">
@@ -270,7 +247,6 @@ foreach ($activities as $activity) {
             </div>
         </div>
 
-        <!-- Classroom Content -->
         <div class="col-md-9">
             <div class="card border shadow-sm" style="border-radius: 15px;">
                 <div class="card-body">
@@ -295,7 +271,6 @@ foreach ($activities as $activity) {
                         Anda harus <a href="index.php?page=login" class="alert-link">login terlebih dahulu</a> untuk bergabung ke classroom ini.
                     </div>
 
-                    <!-- Activity Accordion -->
                     <div class="accordion" id="activityAccordion">
                         <?php foreach ($activities as $index => $activity): ?>
                             <div class="accordion-item shadow-sm mb-3" style="border-radius: 10px;">
@@ -483,9 +458,7 @@ foreach ($activities as $activity) {
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="activityStatusTable">
-                        <!-- Diisi via JavaScript -->
-                    </tbody>
+                    <tbody id="activityStatusTable"></tbody>
                 </table>
             </div>
         </div>
@@ -499,7 +472,6 @@ foreach ($activities as $activity) {
     </div>
 </div>
 
-<!-- CSS -->
 <style>
     .card { border-radius: 10px; transition: transform 0.2s ease-in-out; }
     .card:hover { transform: translateY(-5px); }
@@ -521,7 +493,7 @@ foreach ($activities as $activity) {
     .form-control:focus, .form-select:focus { border-color: #007bff; box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); }
     .table { border-radius: 10px; overflow: hidden; }
     .table th, .table td { padding: 12px; }
-    #video-container .video-wrapper { position: relative; width: 100%; max-width: 300px; margin: 5px; }
+    #video-container .video-wrapper { position: absolute; width: 300px; max-width: 300px; margin: 5px; z-index: 10; }
     #video-container video { width: 100%; border: 2px solid #007bff; background: #000; object-fit: cover; border-radius: 10px; }
     #video-container .video-label { position: absolute; bottom: 5px; left: 5px; background: rgba(0, 0, 0, 0.7); color: white; padding: 2px 8px; border-radius: 5px; font-size: 0.9em; }
     .toast-container .toast { border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
@@ -530,12 +502,15 @@ foreach ($activities as $activity) {
     .meet-btn i { font-size: 1.2rem; }
     #participant-sidebar { background: #f8f9fa; }
     #participant-list li { padding: 5px 0; }
+    #screen-share-container.fullscreen { position: absolute; top: 0; left: 0; height: 100%; width: 100%; z-index: 20; margin-bottom: 0; }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 
-<!-- Variabel Global untuk Video Call -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
+
 <script>
     window.userId = <?php echo json_encode($user_id); ?>;
     window.classroomId = <?php echo json_encode($classroom_id); ?>;
@@ -543,20 +518,15 @@ foreach ($activities as $activity) {
     window.memberNames = <?php echo json_encode(array_column($classroom['members'], 'name', 'id')); ?>;
     window.isLecturer = <?php echo json_encode($isLecturer); ?>;
 </script>
-
-<!-- Load Script Video Call -->
 <script src="./js/video_call.js"></script>
 
-<!-- Script Classroom -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Modal join
     <?php if (!$isMember): ?>
         var joinModal = new bootstrap.Modal(document.getElementById('joinClassModal'), {});
         joinModal.show();
     <?php endif; ?>
 
-    // Handle join
     document.getElementById('confirmJoin').addEventListener('click', function() {
         <?php if ($isLoggedIn): ?>
             var form = document.createElement('form');
@@ -570,7 +540,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php endif; ?>
     });
 
-    // Handle search members
     document.getElementById('searchButton').addEventListener('click', function() {
         const query = document.getElementById('memberSearch').value;
         fetch('index.php?page=classroom&action=search_members&classroom_id=<?php echo $classroom_id; ?>&query=' + encodeURIComponent(query))
@@ -603,7 +572,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error:', error));
     });
 
-    // Handle student activity modal (lecturer only)
     document.querySelectorAll('.list-group-item:not(.disabled)').forEach(item => {
         item.addEventListener('click', function() {
             const userId = this.getAttribute('data-user-id');
@@ -618,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     tbody.innerHTML = '';
                     data.forEach(activity => {
                         const downloadLink = activity.file_name ? 
-                            `<a href="./upload/<?php echo urlencode($classroom['title']); ?>/activity/${userId}/${encodeURIComponent(activity.file_name)}" download class="btn btn-sm btn-outline-primary shadow-sm" style="border-radius: 8px;"><i class="bi bi-download"></i></a>` : '';
+                            `<a href="./upload/mahasiswa/activity/${userId}/${encodeURIComponent(activity.file_name)}" download class="btn btn-sm btn-outline-primary shadow-sm" style="border-radius: 8px;"><i class="bi bi-download"></i></a>` : '';
                         const row = `<tr>
                             <td>${activity.title}</td>
                             <td>${activity.file_name || 'Belum upload'}</td>
@@ -633,7 +601,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Handle add friend
     document.querySelectorAll('.add-friend').forEach(button => {
         button.addEventListener('click', function(e) {
             e.stopPropagation();

@@ -1,38 +1,45 @@
 // js/video_call.js
 document.addEventListener('DOMContentLoaded', function() {
-    const userId = window.userId;
-    const classroomId = window.classroomId;
-    const classroomMembers = window.classroomMembers;
-    const memberNames = window.memberNames;
-    const isLecturer = window.isLecturer;
-    let ws = null;
-    let localStream = null;
-    let audioContext = null;
-    let analyser = null;
-    const peerConnections = {};
-    let isCallActive = false;
-    let participants = new Set();
-    let screenStream = null;
-    let currentScreenSharer = null;
+    // Variabel global
+    const userId = window.userId;               // ID pengguna saat ini
+    const classroomId = window.classroomId;     // ID kelas saat ini
+    const classroomMembers = window.classroomMembers; // Daftar ID anggota kelas
+    const memberNames = window.memberNames;     // Nama anggota kelas berdasarkan ID
+    const isLecturer = window.isLecturer;       // Status apakah pengguna adalah dosen
+    let ws = null;                              // Koneksi WebSocket
+    let localStream = null;                     // Stream lokal (kamera/mikrofon pengguna)
+    let audioContext = null;                    // Konteks audio untuk visualizer
+    let analyser = null;                        // Analyser untuk visualisasi audio
+    const peerConnections = {};                 // Objek untuk menyimpan koneksi peer
+    let isCallActive = false;                   // Status apakah panggilan sedang aktif
+    let participants = new Set();               // Set untuk melacak peserta aktif
+    let screenStream = null;                    // Stream untuk screen sharing
+    let currentScreenSharer = null;             // ID pengguna yang sedang berbagi layar
+    let isScreenSharingFull = false;            // Status apakah screen sharing dalam mode fullscreen
+    const iceCandidateQueue = {};               // Antrian untuk ICE candidates
 
+    // Konfigurasi WebRTC dengan STUN server
     const configuration = {
         iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' }
+            { urls: 'stun:stun.l.google.com:19302' },
+            // Tambahkan TURN server jika diperlukan:
+            // { urls: 'turn:your-turn-server', username: 'user', credential: 'pass' }
         ]
     };
 
+    // Fungsi untuk logging
     function log(message) {
         console.log(`[VideoCall] ${message}`);
     }
 
+    // Fungsi untuk menghubungkan WebSocket
     function connectWebSocket() {
         const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-                const wsUrl = isLocalhost
-                    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8080`
-                    : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}/ws`;
+        const wsUrl = isLocalhost
+            ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8080`
+            : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}/ws`;
 
-                ws = new WebSocket(wsUrl);
-
+        ws = new WebSocket(wsUrl);
 
         ws.onopen = function() {
             ws.send(JSON.stringify({ type: 'register', user_id: userId }));
@@ -56,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // Fungsi untuk menangani pesan WebSocket
     function handleWebSocketMessage(data) {
         switch (data.type) {
             case 'video_call_started':
@@ -81,14 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'participant_joined':
                 if (isCallActive) {
-                    updateParticipantList(data.user_id, true);
-                    createPeerConnection(data.user_id, classroomId); // Buat koneksi dengan peserta baru
+                    participants.add(data.user_id);
+                    updateParticipantList();
+                    createPeerConnection(data.user_id, classroomId);
+                    log(`Participant ${data.user_id} joined`);
                 }
                 break;
             case 'participant_left':
                 if (isCallActive) {
                     endPeerConnection(data.user_id);
-                    updateParticipantList(data.user_id, false);
+                    participants.delete(data.user_id);
+                    updateParticipantList();
+                    log(`Participant ${data.user_id} left`);
                 }
                 break;
             case 'screen_shared':
@@ -106,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fungsi untuk menampilkan notifikasi join
     function showJoinToast(initiatorId) {
         const initiatorName = memberNames[initiatorId] || 'Dosen';
         const toastBody = document.querySelector('#joinToast .toast-body');
@@ -120,12 +133,14 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // Fungsi untuk menyembunyikan notifikasi join
     function hideJoinToast() {
         const toast = new bootstrap.Toast(document.getElementById('joinToast'));
         toast.hide();
         log('Hiding join toast');
     }
 
+    // Fungsi untuk memeriksa status panggilan yang sedang berlangsung
     function checkOngoingCall() {
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({
@@ -139,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fungsi untuk mengisi dropdown perangkat kamera dan mikrofon
     async function populateDeviceSelects() {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const cameraSelect = document.getElementById('cameraSelect');
@@ -160,6 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
         log('Device selects populated');
     }
 
+    // Fungsi untuk memulai panggilan video (khusus dosen)
     async function startVideoCall(classroomId) {
         try {
             if (!isLecturer) {
@@ -179,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
             log(`Video call started by User ${userId} in classroom ${classroomId}`);
 
             participants.add(userId);
-            updateParticipantList(userId, true);
+            updateParticipantList();
 
             classroomMembers.forEach(memberId => {
                 if (memberId != userId) {
@@ -189,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             $('#videoCallModal').modal('show');
             setupControls();
+            makeVideosDraggable();
             isCallActive = true;
         } catch (err) {
             log(`Error starting video call: ${err.message}`);
@@ -196,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fungsi untuk bergabung ke panggilan video
     async function joinVideoCall(classroomId) {
         try {
             if (!localStream) {
@@ -213,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
             log(`User ${userId} joined video call in classroom ${classroomId}`);
 
             participants.add(userId);
-            updateParticipantList(userId, true);
+            updateParticipantList();
 
             classroomMembers.forEach(memberId => {
                 if (memberId != userId) {
@@ -223,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             $('#videoCallModal').modal('show');
             setupControls();
+            makeVideosDraggable();
             isCallActive = true;
             hideJoinToast();
         } catch (err) {
@@ -231,35 +251,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fungsi untuk menambahkan video lokal pengguna
     function addLocalVideo() {
         const localVideo = document.createElement('video');
         localVideo.id = `remoteVideo-${userId}`;
         localVideo.autoplay = true;
-        localVideo.muted = true;
+        localVideo.muted = true; // Mute lokal agar tidak ada echo
         localVideo.playsinline = true;
         localVideo.classList.add('remote-video');
         localVideo.srcObject = localStream;
         const container = document.createElement('div');
         container.classList.add('video-wrapper');
+        container.style.position = 'absolute';
         container.innerHTML = `<span class="video-label">You (${memberNames[userId] || 'Me'})</span>`;
         container.appendChild(localVideo);
         document.getElementById('participant-videos').appendChild(container);
         log(`Local video added for User ${userId}`);
     }
 
+    // Fungsi untuk membuat koneksi peer dengan anggota lain
     async function createPeerConnection(memberId, classroomId) {
-        if (peerConnections[memberId]) return; // Hindari duplikat koneksi
+        if (peerConnections[memberId]) {
+            log(`Peer connection for User ${memberId} already exists`);
+            return;
+        }
 
         const pc = new RTCPeerConnection(configuration);
         peerConnections[memberId] = pc;
 
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+        // Inisialisasi antrian ICE candidates untuk peer ini
+        iceCandidateQueue[memberId] = [];
+
+        // Tambahkan semua track lokal ke koneksi peer
+        if (localStream) {
+            localStream.getTracks().forEach(track => {
+                pc.addTrack(track, localStream);
+                log(`Added track ${track.kind} to peer connection for User ${memberId}`);
+            });
+        }
         if (screenStream) {
-            screenStream.getTracks().forEach(track => pc.addTrack(track, screenStream));
+            screenStream.getTracks().forEach(track => {
+                pc.addTrack(track, screenStream);
+                log(`Added screen share track to peer connection for User ${memberId}`);
+            });
         }
 
+        // Tangani stream masuk dari peer
         pc.ontrack = (event) => {
             const stream = event.streams[0];
+            const existingVideo = document.getElementById(`remoteVideo-${memberId}`);
+            if (existingVideo) {
+                log(`Video for User ${memberId} already exists, skipping`);
+                return;
+            }
+
             const video = document.createElement('video');
             video.id = `remoteVideo-${memberId}`;
             video.autoplay = true;
@@ -268,24 +313,20 @@ document.addEventListener('DOMContentLoaded', function() {
             video.srcObject = stream;
 
             if (stream.getVideoTracks().length > 0 && stream.getVideoTracks()[0].label.includes('screen')) {
-                // Ini adalah screen share
-                const screenShareVideo = document.getElementById('screen-share-video');
-                screenShareVideo.srcObject = stream;
-                document.getElementById('screen-share-label').textContent = `${memberNames[memberId] || 'Unknown'} (Screen)`;
-                document.getElementById('screen-share-container').classList.remove('d-none');
-                currentScreenSharer = memberId;
-                log(`Screen share video added for User ${memberId}`);
+                updateScreenShareUI(stream, memberId);
             } else {
-                // Ini adalah kamera
                 const container = document.createElement('div');
                 container.classList.add('video-wrapper');
+                container.style.position = 'absolute';
                 container.innerHTML = `<span class="video-label">${memberNames[memberId] || 'Unknown'}</span>`;
                 container.appendChild(video);
                 document.getElementById('participant-videos').appendChild(container);
+                makeVideosDraggable();
                 log(`Camera video added for User ${memberId}`);
             }
         };
 
+        // Kirim ICE candidate ke peer
         pc.onicecandidate = (event) => {
             if (event.candidate) {
                 ws.send(JSON.stringify({
@@ -299,7 +340,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
 
+        // Tangani perubahan status koneksi
         pc.onconnectionstatechange = () => {
+            log(`Peer connection state with User ${memberId}: ${pc.connectionState}`);
             if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
                 endPeerConnection(memberId);
                 ws.send(JSON.stringify({
@@ -311,6 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
 
+        // Kirim offer ke peer
         try {
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
@@ -327,6 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fungsi untuk menangani offer dari peer lain
     async function handleOffer(data) {
         if (data.user_id === userId) return;
 
@@ -334,13 +379,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const pc = new RTCPeerConnection(configuration);
             peerConnections[data.user_id] = pc;
 
-            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+            // Inisialisasi antrian ICE candidates untuk peer ini
+            iceCandidateQueue[data.user_id] = [];
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    pc.addTrack(track, localStream);
+                    log(`Added track ${track.kind} to peer connection for User ${data.user_id}`);
+                });
+            }
             if (screenStream) {
-                screenStream.getTracks().forEach(track => pc.addTrack(track, screenStream));
+                screenStream.getTracks().forEach(track => {
+                    pc.addTrack(track, screenStream);
+                    log(`Added screen share track to peer connection for User ${data.user_id}`);
+                });
             }
 
             pc.ontrack = (event) => {
                 const stream = event.streams[0];
+                const existingVideo = document.getElementById(`remoteVideo-${data.user_id}`);
+                if (existingVideo) {
+                    log(`Video for User ${data.user_id} already exists, skipping`);
+                    return;
+                }
+
                 const video = document.createElement('video');
                 video.id = `remoteVideo-${data.user_id}`;
                 video.autoplay = true;
@@ -349,18 +411,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 video.srcObject = stream;
 
                 if (stream.getVideoTracks().length > 0 && stream.getVideoTracks()[0].label.includes('screen')) {
-                    const screenShareVideo = document.getElementById('screen-share-video');
-                    screenShareVideo.srcObject = stream;
-                    document.getElementById('screen-share-label').textContent = `${memberNames[data.user_id] || 'Unknown'} (Screen)`;
-                    document.getElementById('screen-share-container').classList.remove('d-none');
-                    currentScreenSharer = data.user_id;
-                    log(`Screen share video added for User ${data.user_id}`);
+                    updateScreenShareUI(stream, data.user_id);
                 } else {
                     const container = document.createElement('div');
                     container.classList.add('video-wrapper');
+                    container.style.position = 'absolute';
                     container.innerHTML = `<span class="video-label">${memberNames[data.user_id] || 'Unknown'}</span>`;
                     container.appendChild(video);
                     document.getElementById('participant-videos').appendChild(container);
+                    makeVideosDraggable();
                     log(`Camera video added for User ${data.user_id}`);
                 }
             };
@@ -379,6 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             pc.onconnectionstatechange = () => {
+                log(`Peer connection state with User ${data.user_id}: ${pc.connectionState}`);
                 if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
                     endPeerConnection(data.user_id);
                     ws.send(JSON.stringify({
@@ -392,6 +452,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             try {
                 await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                log(`Remote description set for User ${data.user_id}`);
+
+                // Proses ICE candidates yang ada di antrian
+                if (iceCandidateQueue[data.user_id] && iceCandidateQueue[data.user_id].length > 0) {
+                    for (const candidate of iceCandidateQueue[data.user_id]) {
+                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                        log(`Processed queued ICE candidate for User ${data.user_id}`);
+                    }
+                    iceCandidateQueue[data.user_id] = [];
+                }
+
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
                 ws.send(JSON.stringify({
@@ -408,28 +479,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fungsi untuk menangani jawaban dari peer lain
     async function handleAnswer(data) {
         if (peerConnections[data.user_id]) {
             try {
-                await peerConnections[data.user_id].setRemoteDescription(new RTCSessionDescription(data.answer));
+                const pc = peerConnections[data.user_id];
+                await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
                 log(`Answer received and set from User ${data.user_id}`);
+
+                // Proses ICE candidates yang ada di antrian
+                if (iceCandidateQueue[data.user_id] && iceCandidateQueue[data.user_id].length > 0) {
+                    for (const candidate of iceCandidateQueue[data.user_id]) {
+                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                        log(`Processed queued ICE candidate for User ${data.user_id}`);
+                    }
+                    iceCandidateQueue[data.user_id] = [];
+                }
             } catch (err) {
                 log(`Error handling answer from User ${data.user_id}: ${err.message}`);
             }
         }
     }
 
+    // Fungsi untuk menangani ICE candidate dari peer lain
     async function handleIceCandidate(data) {
         if (peerConnections[data.user_id]) {
-            try {
-                await peerConnections[data.user_id].addIceCandidate(new RTCIceCandidate(data.candidate));
-                log(`ICE candidate added from User ${data.user_id}`);
-            } catch (err) {
-                log(`Error adding ICE candidate from User ${data.user_id}: ${err.message}`);
+            const pc = peerConnections[data.user_id];
+            if (pc.remoteDescription) {
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    log(`ICE candidate added from User ${data.user_id}`);
+                } catch (err) {
+                    log(`Error adding ICE candidate from User ${data.user_id}: ${err.message}`);
+                }
+            } else {
+                // Jika remoteDescription belum diatur, masukkan ke antrian
+                iceCandidateQueue[data.user_id].push(data.candidate);
+                log(`ICE candidate queued for User ${data.user_id} because remote description is not set`);
             }
         }
     }
 
+    // Fungsi untuk menangani pemberitahuan screen sharing
     async function handleScreenShare(data) {
         if (data.user_id !== userId && peerConnections[data.user_id]) {
             log(`Screen share received from User ${data.user_id}`);
@@ -437,22 +528,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fungsi untuk memperbarui UI saat screen sharing aktif
+    function updateScreenShareUI(stream, memberId) {
+        const screenShareVideo = document.getElementById('screen-share-video');
+        screenShareVideo.srcObject = stream;
+        document.getElementById('screen-share-label').textContent = `${memberNames[memberId] || 'Unknown'} (Screen)`;
+        document.getElementById('screen-share-container').classList.remove('d-none');
+        currentScreenSharer = memberId;
+
+        if (isScreenSharingFull) {
+            toggleFullScreenShare(true);
+        }
+        log(`Screen share updated for User ${memberId}`);
+    }
+
+    // Fungsi untuk mengaktifkan/menonaktifkan mode fullscreen screen sharing
+    function toggleFullScreenShare(forceFull = false) {
+        const screenContainer = document.getElementById('screen-share-container');
+        const participantVideos = document.getElementById('participant-videos');
+
+        if (forceFull || !isScreenSharingFull) {
+            screenContainer.style.height = '100%';
+            screenContainer.style.width = '100%';
+            screenContainer.classList.add('fullscreen');
+            participantVideos.classList.add('d-none');
+            isScreenSharingFull = true;
+        } else {
+            screenContainer.style.height = '50%';
+            screenContainer.style.width = '100%';
+            screenContainer.classList.remove('fullscreen');
+            participantVideos.classList.remove('d-none');
+            isScreenSharingFull = false;
+        }
+    }
+
+    // Fungsi untuk mengakhiri koneksi peer dengan pengguna tertentu
     function endPeerConnection(userId) {
         if (peerConnections[userId]) {
             peerConnections[userId].close();
             delete peerConnections[userId];
+            delete iceCandidateQueue[userId];
             const videoWrapper = document.querySelector(`#participant-videos .video-wrapper:has(#remoteVideo-${userId})`);
             if (videoWrapper) videoWrapper.remove();
             if (currentScreenSharer === userId) {
                 document.getElementById('screen-share-container').classList.add('d-none');
                 currentScreenSharer = null;
+                isScreenSharingFull = false;
             }
             participants.delete(userId);
-            updateParticipantList(userId, false);
+            updateParticipantList();
             log(`Peer connection ended with User ${userId}`);
         }
     }
 
+    // Fungsi untuk mengakhiri seluruh panggilan video
     function endVideoCall(classroomId) {
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
@@ -469,6 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
         Object.keys(peerConnections).forEach(userId => {
             peerConnections[userId].close();
             delete peerConnections[userId];
+            delete iceCandidateQueue[userId];
         });
         document.getElementById('participant-videos').innerHTML = '';
         document.getElementById('screen-share-container').classList.add('d-none');
@@ -488,14 +618,8 @@ document.addEventListener('DOMContentLoaded', function() {
         hideJoinToast();
     }
 
-    function updateParticipantList(userId, isJoining) {
-        if (isJoining) {
-            participants.add(userId);
-            log(`Participant ${userId} joined`);
-        } else if (userId) {
-            participants.delete(userId);
-            log(`Participant ${userId} left`);
-        }
+    // Fungsi untuk memperbarui daftar peserta di sidebar
+    function updateParticipantList() {
         const participantList = document.getElementById('participant-list');
         participantList.innerHTML = '';
         participants.forEach(pid => {
@@ -503,8 +627,34 @@ document.addEventListener('DOMContentLoaded', function() {
             li.textContent = memberNames[pid] || 'Unknown';
             participantList.appendChild(li);
         });
+        log('Participant list updated');
     }
 
+    // Fungsi untuk membuat video bisa di-drag
+    function makeVideosDraggable() {
+        interact('.video-wrapper').draggable({
+            inertia: true,
+            modifiers: [
+                interact.modifiers.restrictRect({
+                    restriction: '#video-container',
+                    endOnly: true
+                })
+            ],
+            listeners: {
+                move(event) {
+                    const target = event.target;
+                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                    target.style.transform = `translate(${x}px, ${y}px)`;
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+                }
+            }
+        });
+    }
+
+    // Fungsi untuk mengatur kontrol video (mute, video off, screen share, dll.)
     function setupControls() {
         $('#mute-audio').on('click', function() {
             const audioTrack = localStream.getAudioTracks()[0];
@@ -537,12 +687,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!screenStream) {
                     screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
                     const screenTrack = screenStream.getVideoTracks()[0];
-                    screenTrack.onended = () => {
-                        stopScreenSharing();
-                    };
+                    screenTrack.onended = () => stopScreenSharing();
                     Object.values(peerConnections).forEach(pc => {
                         const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
-                        if (sender) sender.replaceTrack(screenTrack);
+                        if (sender) {
+                            sender.replaceTrack(screenTrack);
+                            log(`Replaced video track with screen share for peer ${pc}`);
+                        } else {
+                            pc.addTrack(screenTrack, screenStream);
+                            log(`Added screen share track to peer ${pc}`);
+                        }
                     });
                     ws.send(JSON.stringify({
                         type: 'screen_shared',
@@ -550,18 +704,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         user_id: userId
                     }));
                     $(this).addClass('btn-success').removeClass('btn-outline-secondary');
-                    const screenShareVideo = document.getElementById('screen-share-video');
-                    screenShareVideo.srcObject = screenStream;
-                    document.getElementById('screen-share-label').textContent = `${memberNames[userId] || 'Me'} (Screen)`;
-                    document.getElementById('screen-share-container').classList.remove('d-none');
-                    currentScreenSharer = userId;
-                    log('Screen sharing started');
+                    updateScreenShareUI(screenStream, userId);
                 } else {
                     stopScreenSharing();
                 }
             } catch (err) {
                 log(`Error sharing screen: ${err.message}`);
             }
+        });
+
+        $('#screen-share-video').on('dblclick', function() {
+            toggleFullScreenShare();
         });
 
         $('#cameraSelect').on('change', async function() {
@@ -604,6 +757,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Fungsi untuk menghentikan screen sharing
     function stopScreenSharing() {
         if (screenStream) {
             screenStream.getTracks().forEach(track => track.stop());
@@ -612,16 +766,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const videoTrack = localStream.getVideoTracks()[0];
             Object.values(peerConnections).forEach(pc => {
                 const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
-                if (sender) sender.replaceTrack(videoTrack);
+                if (sender) {
+                    sender.replaceTrack(videoTrack);
+                    log(`Reverted to camera track for peer ${pc}`);
+                }
             });
             if (currentScreenSharer === userId) {
                 document.getElementById('screen-share-container').classList.add('d-none');
                 currentScreenSharer = null;
+                isScreenSharingFull = false;
             }
             log('Screen sharing stopped');
         }
     }
 
+    // Fungsi untuk mengatur visualisasi audio
     function setupAudioVisualizer() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -657,10 +816,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Event listener untuk tombol start dan join
     $('#start-video-call').on('click', function() {
         const classroomId = $(this).data('classroom-id');
         startVideoCall(classroomId);
     });
 
+    $('#join-meeting-btn').on('click', function() {
+        joinVideoCall(classroomId);
+        document.getElementById('meeting-notification').classList.add('d-none');
+    });
+
+    // Mulai koneksi WebSocket saat halaman dimuat
     connectWebSocket();
 });
