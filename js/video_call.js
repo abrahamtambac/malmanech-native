@@ -38,9 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function connectWebSocket() {
+        const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const wsUrl = isLocalhost
-             ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8080`
-             : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}/ws`;
+            ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8080`
+            : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}/ws`;
+
+    
         ws = new WebSocket(wsUrl);
 
         ws.onopen = function() {

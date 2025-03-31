@@ -42012,3 +42012,7 @@
 [2025-03-31 18:08:29] Status update sent to Friend ID: 6 for User ID: 17
 [2025-03-31 18:08:29] User 17 registered with Resource ID: 42879
 
+DB_HOST=localhost
+DB_USER=abraham
+DB_PASS=4br4H4m()()Selayang13
+DB_NAME=db_chatai
