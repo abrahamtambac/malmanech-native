@@ -1,361 +1,304 @@
 <?php
 session_start();
-include_once './config/db.php';
+require_once './config/db.php'; // Menggunakan require_once untuk memastikan file hanya dimuat sekali
 
-$page = isset($_GET['page']) ? $_GET['page'] : 'home';
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+$page = $_GET['page'] ?? 'home'; // Menggunakan null coalescing operator untuk lebih ringkas
+$action = $_GET['action'] ?? '';
 
-// Handle all AJAX requests before rendering the page
+// Fungsi untuk mengirim respons JSON dan keluar
+function sendJsonResponse($data) {
+    header('Content-Type: application/json');
+    echo json_encode($data);
+    exit;
+}
+
+// Memeriksa autentikasi pengguna
+function requireAuth() {
+    if (!isset($_SESSION['user_id'])) {
+        sendJsonResponse(['success' => false, 'error' => 'User not authenticated']);
+    }
+    return $_SESSION['user_id'];
+}
+
+// Menangani AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'GET' || $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Chat-related AJAX requests
     if ($page === 'chat' && $action) {
-        include_once './controllers/ChatController.php';
+        require_once './controllers/ChatController.php';
         $chatController = new ChatController($conn);
+        $user_id = requireAuth();
 
-        if (!isset($_SESSION['user_id'])) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'User not authenticated']);
-            exit();
-        }
+        switch ($action) {
+            case 'add_friend':
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    ob_clean();
+                    $friend_id = $_POST['friend_id'] ?? null;
+                    if (!$friend_id) sendJsonResponse(['success' => false, 'error' => 'Friend ID is required']);
+                    $result = $chatController->addFriend($user_id, $friend_id);
+                    sendJsonResponse($result);
+                }
+                break;
 
-        $user_id = $_SESSION['user_id'];
+            case 'accept_friend':
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    ob_clean();
+                    $friend_id = $_POST['friend_id'] ?? null;
+                    if (!$friend_id) sendJsonResponse(['success' => false, 'error' => 'Friend ID is required']);
+                    $result = $chatController->acceptFriend($user_id, $friend_id);
+                    sendJsonResponse($result);
+                }
+                break;
 
-        // Add friend (friend request)
-        if ($action === 'add_friend' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            ob_clean();
-            $friend_id = $_POST['friend_id'] ?? null;
-            if (!$friend_id) {
-                echo json_encode(['success' => false, 'error' => 'Friend ID is required']);
-                exit();
-            }
-            $result = $chatController->addFriend($user_id, $friend_id);
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
-        }
+            case 'delete_friend':
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    ob_clean();
+                    $friend_id = $_POST['friend_id'] ?? null;
+                    if (!$friend_id) sendJsonResponse(['success' => false, 'error' => 'Friend ID is required']);
+                    $result = $chatController->deleteFriend($user_id, $friend_id);
+                    sendJsonResponse($result);
+                }
+                break;
 
-        // Accept friend request
-        if ($action === 'accept_friend' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            ob_clean();
-            $friend_id = $_POST['friend_id'] ?? null;
-            if (!$friend_id) {
-                echo json_encode(['success' => false, 'error' => 'Friend ID is required']);
-                exit();
-            }
-            $result = $chatController->acceptFriend($user_id, $friend_id);
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
-        }
+            case 'search_users':
+                if (isset($_GET['query'])) {
+                    ob_clean();
+                    $query = $_GET['query'];
+                    $users = $chatController->searchUsers($query);
+                    sendJsonResponse($users);
+                }
+                break;
 
-        // Delete friend
-        if ($action === 'delete_friend' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            ob_clean();
-            $friend_id = $_POST['friend_id'] ?? null;
-            if (!$friend_id) {
-                echo json_encode(['success' => false, 'error' => 'Friend ID is required']);
-                exit();
-            }
-            $result = $chatController->deleteFriend($user_id, $friend_id);
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
-        }
+            case 'get_messages':
+                if (isset($_GET['friend_id'])) {
+                    ob_clean();
+                    $friend_id = $_GET['friend_id'];
+                    $messages = $chatController->getMessages($user_id, $friend_id);
+                    sendJsonResponse($messages);
+                }
+                break;
 
-        // Search users
-        if ($action === 'search_users' && isset($_GET['query'])) {
-            ob_clean();
-            $query = $_GET['query'];
-            $users = $chatController->searchUsers($query);
-            header('Content-Type: application/json');
-            echo json_encode($users);
-            exit();
-        }
+            case 'upload_file':
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    ob_clean();
+                    $receiver_id = $_POST['receiver_id'] ?? null;
+                    $message = $_POST['message'] ?? '';
+                    $file = $_FILES['file'] ?? null;
+                    if (!$receiver_id || !$file) sendJsonResponse(['success' => false, 'error' => 'Receiver ID or file is required']);
+                    $result = $chatController->uploadFile($user_id, $receiver_id, $message, $file);
+                    sendJsonResponse($result);
+                }
+                break;
 
-        // Get messages
-        if ($action === 'get_messages' && isset($_GET['friend_id'])) {
-            ob_clean();
-            $friend_id = $_GET['friend_id'];
-            $messages = $chatController->getMessages($user_id, $friend_id);
-            header('Content-Type: application/json');
-            echo json_encode($messages);
-            exit();
-        }
+            case 'get_pending_requests':
+                ob_clean();
+                $requests = $chatController->getPendingRequests($user_id);
+                sendJsonResponse($requests);
+                break;
 
-        // Upload file
-        if ($action === 'upload_file' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            ob_clean();
-            $receiver_id = $_POST['receiver_id'] ?? null;
-            $message = $_POST['message'] ?? '';
-            $file = $_FILES['file'] ?? null;
-
-            if (!$receiver_id || !$file) {
-                echo json_encode(['success' => false, 'error' => 'Receiver ID or file is required']);
-                exit();
-            }
-
-            $result = $chatController->uploadFile($user_id, $receiver_id, $message, $file);
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
-        }
-
-        // Get pending friend requests
-        if ($action === 'get_pending_requests') {
-            ob_clean();
-            $requests = $chatController->getPendingRequests($user_id);
-            header('Content-Type: application/json');
-            echo json_encode($requests);
-            exit();
-        }
-
-        // Get friends with latest messages
-        if ($action === 'get_friends_with_latest') {
-            ob_clean();
-            $query = $_GET['query'] ?? '';
-            $friends = $chatController->getFriendsWithLatest($user_id, $query);
-            header('Content-Type: application/json');
-            echo json_encode($friends);
-            exit();
+            case 'get_friends_with_latest':
+                ob_clean();
+                $query = $_GET['query'] ?? '';
+                $friends = $chatController->getFriendsWithLatest($user_id, $query);
+                sendJsonResponse($friends);
+                break;
         }
     }
 
-    // Handle Classroom AJAX requests
+    // Classroom-related AJAX requests
     if ($page === 'classroom' && $action) {
-        include_once './controllers/ClassroomController.php';
+        require_once './controllers/ClassroomController.php';
         $classroomController = new ClassroomController($conn);
+        $user_id = requireAuth();
 
-        if (!isset($_SESSION['user_id'])) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'User not authenticated']);
-            exit();
-        }
+        switch ($action) {
+            case 'get_details':
+                if (isset($_GET['classroom_id'])) {
+                    ob_clean();
+                    $classroom_id = $_GET['classroom_id'];
+                    $details = $classroomController->getClassroomDetails($classroom_id);
+                    sendJsonResponse($details);
+                }
+                break;
 
-        $user_id = $_SESSION['user_id'];
+            case 'invite_users':
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    ob_clean();
+                    $classroom_id = $_POST['classroom_id'] ?? null;
+                    $user_ids = $_POST['user_ids'] ?? [];
+                    if (!$classroom_id || empty($user_ids)) sendJsonResponse(['success' => false, 'error' => 'Classroom ID or user IDs missing']);
+                    $result = $classroomController->inviteUsers($classroom_id, $user_ids);
+                    sendJsonResponse(['success' => $result]);
+                }
+                break;
 
-        // Get classroom details
-        if ($action === 'get_details' && isset($_GET['classroom_id'])) {
-            ob_clean();
-            $classroom_id = $_GET['classroom_id'];
-            $details = $classroomController->getClassroomDetails($classroom_id);
-            header('Content-Type: application/json');
-            echo json_encode($details);
-            exit();
-        }
+            case 'delete_classroom':
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    ob_clean();
+                    $classroom_id = $_POST['classroom_id'] ?? null;
+                    if (!$classroom_id) sendJsonResponse(['success' => false, 'error' => 'Classroom ID is required']);
+                    $result = $classroomController->deleteClassroom($classroom_id);
+                    sendJsonResponse(['success' => $result]);
+                }
+                break;
 
-        // Invite users
-        if ($action === 'invite_users' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            ob_clean();
-            $classroom_id = $_POST['classroom_id'] ?? null;
-            $user_ids = $_POST['user_ids'] ?? [];
-            if (!$classroom_id || empty($user_ids)) {
-                echo json_encode(['success' => false, 'error' => 'Classroom ID or user IDs missing']);
-                exit();
-            }
-            $result = $classroomController->inviteUsers($classroom_id, $user_ids);
-            header('Content-Type: application/json');
-            echo json_encode(['success' => $result]);
-            exit();
-        }
+            case 'join':
+                if (isset($_GET['code'])) {
+                    ob_clean();
+                    $code = $_GET['code'];
+                    $result = $classroomController->joinClassroom($code);
+                    sendJsonResponse($result);
+                }
+                break;
 
-        // Delete classroom
-        if ($action === 'delete_classroom' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            ob_clean();
-            $classroom_id = $_POST['classroom_id'] ?? null;
-            if (!$classroom_id) {
-                echo json_encode(['success' => false, 'error' => 'Classroom ID is required']);
-                exit();
-            }
-            $result = $classroomController->deleteClassroom($classroom_id);
-            header('Content-Type: application/json');
-            echo json_encode(['success' => $result]);
-            exit();
-        }
+            case 'get_student_activities':
+                if (isset($_GET['user_id']) && isset($_GET['classroom_id'])) {
+                    ob_clean();
+                    $student_id = $_GET['user_id'];
+                    $classroom_id = $_GET['classroom_id'];
+                    $stmt = $conn->prepare("
+                        SELECT a.title, s.file_name, s.status, s.submitted_at 
+                        FROM tb_classroom_activities a
+                        LEFT JOIN tb_activity_submissions s ON a.id = s.activity_id AND s.user_id = ?
+                        WHERE a.classroom_id = ?
+                    ");
+                    $stmt->bind_param("ii", $student_id, $classroom_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                    $stmt->close();
+                    sendJsonResponse($result);
+                }
+                break;
 
-        // Join classroom via code
-        if ($action === 'join' && isset($_GET['code'])) {
-            ob_clean();
-            $code = $_GET['code'];
-            $result = $classroomController->joinClassroom($code);
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
-        }
-        if ($action === 'get_student_activities' && isset($_GET['user_id']) && isset($_GET['classroom_id'])) {
-            ob_clean();
-            $user_id = $_GET['user_id'];
-            $classroom_id = $_GET['classroom_id'];
-            $stmt = $conn->prepare("
-                SELECT a.title, s.file_name, s.status, s.submitted_at 
-                FROM tb_classroom_activities a
-                LEFT JOIN tb_activity_submissions s ON a.id = s.activity_id AND s.user_id = ?
-                WHERE a.classroom_id = ?
-            ");
-            $stmt->bind_param("ii", $user_id, $classroom_id);
-            $stmt->execute();
-            $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $stmt->close();
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
-        }
-        if ($action === 'get_student_activities' && isset($_GET['user_id']) && isset($_GET['classroom_id'])) {
-            ob_clean();
-            $user_id = $_GET['user_id'];
-            $classroom_id = $_GET['classroom_id'];
-            $stmt = $conn->prepare("
-                SELECT a.title, s.file_name, s.status, s.submitted_at 
-                FROM tb_classroom_activities a
-                LEFT JOIN tb_activity_submissions s ON a.id = s.activity_id AND s.user_id = ?
-                WHERE a.classroom_id = ?
-            ");
-            $stmt->bind_param("ii", $user_id, $classroom_id);
-            $stmt->execute();
-            $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $stmt->close();
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
-        }
-        if ($action === 'search_members' && isset($_GET['classroom_id']) && isset($_GET['query'])) {
-            ob_clean();
-            $classroom_id = $_GET['classroom_id'];
-            $query = "%" . $_GET['query'] . "%";
-            $stmt = $conn->prepare("
-                SELECT u.id, u.name, u.profile_image, cm.role 
-                FROM tb_classroom_members cm 
-                JOIN tb_users u ON cm.user_id = u.id 
-                WHERE cm.classroom_id = ? AND u.name LIKE ?
-            ");
-            $stmt->bind_param("is", $classroom_id, $query);
-            $stmt->execute();
-            $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $stmt->close();
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
+            case 'search_members':
+                if (isset($_GET['classroom_id']) && isset($_GET['query'])) {
+                    ob_clean();
+                    $classroom_id = $_GET['classroom_id'];
+                    $query = "%" . $_GET['query'] . "%";
+                    $stmt = $conn->prepare("
+                        SELECT u.id, u.name, u.profile_image, cm.role 
+                        FROM tb_classroom_members cm 
+                        JOIN tb_users u ON cm.user_id = u.id 
+                        WHERE cm.classroom_id = ? AND u.name LIKE ?
+                    ");
+                    $stmt->bind_param("is", $classroom_id, $query);
+                    $stmt->execute();
+                    $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                    $stmt->close();
+                    sendJsonResponse($result);
+                }
+                break;
+
+            case 'can_start_video_call':
+                if (isset($_GET['classroom_id'])) {
+                    ob_clean();
+                    $classroom_id = $_GET['classroom_id'];
+                    $canStart = $classroomController->canStartVideoCall($classroom_id);
+                    sendJsonResponse(['success' => $canStart]);
+                }
+                break;
+
+            case 'create_meeting':
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    ob_clean();
+                    $classroom_id = $_GET['classroom_id'] ?? null;
+                    $type = $_GET['type'] ?? null;
+                    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+                    $date = $data['date'] ?? null;
+                    $time = $data['time'] ?? null;
+
+                    if (!$classroom_id || !$type) {
+                        sendJsonResponse(['success' => false, 'error' => 'Classroom ID or type missing']);
+                    }
+
+                    $result = $classroomController->createMeeting($classroom_id, $type, $date, $time);
+                    sendJsonResponse($result);
+                }
+                break;
         }
     }
 
-    // Handle authentication-related AJAX requests
-    if ($page === 'auth' && $action) {
-        include_once './controllers/AuthController.php';
+    // Auth-related AJAX requests
+    if ($page === 'auth' && $action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        require_once './controllers/AuthController.php';
         $authController = new AuthController($conn);
 
-        if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            ob_clean();
-            $email = $_POST['email'] ?? '';
-            $password = $_POST['password'] ?? '';
-            $result = $authController->login($email, $password);
-            if (is_string($result)) {
-                echo json_encode(['success' => false, 'error' => $result]);
-            } else {
-                echo json_encode(['success' => true]);
-            }
-            header('Content-Type: application/json');
-            exit();
-        }
+        ob_clean();
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $result = $authController->login($email, $password);
+        sendJsonResponse(is_string($result) ? ['success' => false, 'error' => $result] : ['success' => true]);
     }
 }
 
-// Function to load pages
+// Fungsi untuk memuat halaman
 function loadPage($page, $conn) {
     $isAdmin = isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1;
     $isLoggedIn = isset($_SESSION['user_id']);
+    $filePath = "file_/{$page}.php";
 
-    // Handle classroom join via code before loading page
+    // Handle classroom join via code
     if ($page === 'classroom' && isset($_GET['code']) && $isLoggedIn) {
-        include_once './controllers/ClassroomController.php';
+        require_once './controllers/ClassroomController.php';
         $classroomController = new ClassroomController($conn);
         $code = $_GET['code'];
         $result = $classroomController->joinClassroom($code);
         if ($result['success']) {
             header("Location: index.php?page=classroom&classroom_id=" . $result['classroom_id']);
-            exit();
+            exit;
         } else {
-            // Tampilkan pesan error di halaman classroom jika join gagal
-            $join_error = $result['error'];
+            $GLOBALS['join_error'] = $result['error']; // Simpan error untuk ditampilkan
         }
     }
 
-    $filePath = "file_/{$page}.php";
-    if (!file_exists($filePath) && $page !== 'logout' && $page !== 'verify') {
+    // Daftar halaman yang tidak memerlukan file fisik
+    $specialPages = ['logout', 'verify', 'video_call_meeting'];
+    if (!file_exists($filePath) && !in_array($page, $specialPages)) {
         include 'file_/404/not_found_1.php';
         return;
     }
 
+    // Penanganan halaman
     switch ($page) {
         case 'home':
-            include 'file_/home.php';
+            include $filePath;
             break;
         case 'login':
-            if ($isLoggedIn) {
-                header('Location: index.php?page=home');
-                exit();
-            }
-            include 'file_/login.php';
-            break;
         case 'signup':
-            if ($isLoggedIn) {
-                header('Location: index.php?page=home');
-                exit();
-            }
-            include 'file_/signup.php';
-            break;
         case 'verify':
             if ($isLoggedIn) {
                 header('Location: index.php?page=home');
-                exit();
+                exit;
             }
-            include 'file_/verify.php';
+            include $filePath;
             break;
         case 'logout':
             session_destroy();
             header('Location: index.php?page=login');
-            exit();
+            exit;
         case 'profile':
-            if ($isLoggedIn) {
-                include 'file_/profile.php';
-            } else {
-                header('Location: index.php?page=login');
-                exit();
-            }
-            break;
         case 'change_password':
+        case 'classroom_dashboard':
+        case 'classroom':
+        case 'video_call_meeting':
             if ($isLoggedIn) {
-                include 'file_/change_password.php';
+                include $filePath;
             } else {
                 header('Location: index.php?page=login');
-                exit();
+                exit;
             }
             break;
         case 'admin_dashboard':
             if ($isLoggedIn && $isAdmin) {
-                include 'file_/admin_dashboard.php';
+                include $filePath;
             } else {
                 include 'file_/404/not_found_1.php';
             }
             break;
         case 'chat':
             if ($isLoggedIn) {
-                include 'file_/chat.php';
+                include $filePath;
             } else {
                 include 'file_/404/not_found_1.php';
-            }
-            break;
-        case 'classroom_dashboard':
-            if ($isLoggedIn) {
-                include 'file_/classroom_dashboard.php';
-            } else {
-                header('Location: index.php?page=login');
-                exit();
-            }
-            break;
-        case 'classroom':
-            if ($isLoggedIn) {
-                include 'file_/classroom.php';
-            } else {
-                header('Location: index.php?page=login');
-                exit();
             }
             break;
         default:
@@ -364,6 +307,6 @@ function loadPage($page, $conn) {
     }
 }
 
-// Load the requested page
+// Memuat halaman
 loadPage($page, $conn);
 ?>

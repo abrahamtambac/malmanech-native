@@ -75,41 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<style>
-    @font-face {
-        font-family: 'Product Sans';
-      
-        font-weight: normal;
-        font-style: normal;
-    }
 
-    @font-face {
-        font-family: 'Product Sans';
-        
-        font-weight: bold;
-        font-style: normal;
-    }
-
-    body {
-        font-family: 'Product Sans', sans-serif;
-        background-color: #f5f7fa;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-    }
-    .card-hover:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    }
-    .input-focus:focus {
-        background-color: #fff;
-        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
-        border-color: #0d6efd;
-    }
-    .form-control {
-        background-color: #f8f9fa;
-    }
-</style>
 </head>
 <body>
     <!-- Main Content -->

@@ -20,7 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     <?php include '_partials/_template/header.php'; ?>
-
+  
+    <section id="features" class="py-5">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-5">
@@ -31,7 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <?php endif; ?>
-
+                    <h2 class=" fw-bolder mb-2">Login ...</h2>
+                    <p class=" text-muted mb-4">Nikmati fasilitas mal + dari malmanech</p>
                     <form action="" method="POST">
                         <div class="mb-3">
                             <label for="email" class="form-label fw-bold">Email</label>
@@ -70,8 +72,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
         
+        
     </div>
- 
+                    </section>
+   
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
         function togglePassword(inputId, button) {

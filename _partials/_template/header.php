@@ -19,14 +19,15 @@
         rel="stylesheet">
     <style>
         @font-face {
-            font-family: 'Product Sans';
-            src: url('./fonts/ProductSans-Regular.ttf') format('truetype');
+            font-family: 'Circular Std';
+            src: url('./fonts/circular-std-medium-500.ttf') format('truetype');
         }
 
         body {
-            font-family: 'Product Sans';
-            src: url('./fonts/ProductSans-Regular.ttf') format('truetype');
+            font-family: 'Circular Std';
+
         }
+
 
         .dashboard-container {
             padding: 20px;
@@ -327,6 +328,297 @@
         .message .file-download i {
             margin-right: 5px;
         }
+
+        @font-face {
+            font-family: 'Product Sans';
+            src: url('./fonts/ProductSans-Regular.ttf') format('truetype');
+        }
+
+        :root {
+            --primary: #0d6efd;
+            --secondary: #f8f9fa;
+            --dark: #212529;
+            --light: #ffffff;
+            --gradient: linear-gradient(135deg, #0d6efd, #0a58ca);
+        }
+
+        body {
+            font-family: 'Product Sans', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+        }
+
+        .hero {
+            background: var(--secondary);
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('https://www.transparenttextures.com/patterns/subtle-white-feathers.png');
+            opacity: 0.1;
+            animation: subtleMove 20s infinite linear;
+        }
+
+        @keyframes subtleMove {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            color: #666;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-card {
+            border-radius: 15px;
+            padding: 2rem;
+            background: var(--light);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 15px 30px rgba(13, 110, 253, 0.1);
+        }
+
+        .feature-card i {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            border: none;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+        }
+
+        .navbar {
+            padding: 1rem 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-card {
+            position: relative;
+            border-radius: 20px;
+            padding: 2.5rem;
+            background: #ffffff;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 15px 30px rgba(13, 110, 253, 0.15);
+        }
+
+        .abstract-bg {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(13, 110, 253, 0.1) 0%, transparent 70%);
+            opacity: 0.5;
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+
+        .feature-card:hover .abstract-bg {
+            transform: rotate(50deg) scale(1.1);
+            opacity: 0.7;
+        }
+
+        .feature-card i {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover i {
+            transform: scale(1.1);
+        }
+
+        .feature-card h5 {
+            position: relative;
+            z-index: 1;
+            color: #212529;
+            font-size: 1.25rem;
+        }
+
+        .feature-card p {
+            position: relative;
+            z-index: 1;
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .feature-card {
+                padding: 1.5rem;
+            }
+
+            .feature-card i {
+                font-size: 2.5rem;
+            }
+
+            .feature-card h5 {
+                font-size: 1.1rem;
+            }
+
+            .feature-card p {
+                font-size: 0.85rem;
+            }
+        }
+
+        .footer {
+            background: #ffffff;
+            /* Background putih */
+            color: #212529;
+            /* Warna teks default hitam */
+            padding: 80px 0 40px;
+            position: relative;
+        }
+
+        .footer h5 {
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #212529;
+            display: flex;
+            align-items: center;
+        }
+
+        .footer h6 {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #212529;
+        }
+
+        .footer p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .footer a {
+            color: #0d6efd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: #0a58ca;
+        }
+
+        .footer .bi {
+            font-size: 1.2rem;
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .footer .bi:hover {
+            color: #0d6efd;
+        }
+
+        .footer hr {
+            border: 0;
+            height: 1px;
+            background: #dee2e6;
+            margin: 40px 0;
+        }
+
+        .footer .text-center {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .footer .btn-primary {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .footer .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+        }
+
+        .footer .text-warning {
+            color: #ffc107 !important;
+            /* Warna kuning untuk ikon fingerprint */
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 80px 0;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 
@@ -365,7 +657,8 @@
                     ?>
                     <ul class="navbar-nav me-3 my-2 my-lg-0 navbar-nav-scroll">
                         <!-- Previous nav items remain the same -->
-                        <a class="dropdown-item text-white" href="index.php?page=admin_dashboard" style="font-size: 20px;">Dashboard</a>
+                        <a class="dropdown-item text-white" href="index.php?page=admin_dashboard"
+                            style="font-size: 20px;">Dashboard</a>
 
                     </ul>
                     <div class="d-flex align-items-center me-3">
@@ -387,14 +680,14 @@
                         </div>
                     </div>
                 <?php } else { ?>
-                   
+
                     <a href="index.php?page=login" class="btn btn-warning fw-bolder d-flex align-items-center"
                         style="border-radius: 20px;">
                         Login <i class="bi bi-arrow-right ms-2"></i>
                     </a>
                 <?php } ?>
-               
+
             </div>
-            
+
         </div>
     </nav>

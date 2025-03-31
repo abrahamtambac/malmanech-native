@@ -19,11 +19,11 @@
         rel="stylesheet">
     <style>
          @font-face {
-        font-family: 'Product Sans';
-        src: url('./fonts/ProductSans-Regular.ttf') format('truetype');
+        font-family: 'Circular Std';
+        src: url('./fonts/circular-std-medium-500.ttf') format('truetype');
     }
         body {
-            font-family: 'Product Sans';
+            font-family: 'Circular Std';
            
         }
 
@@ -330,6 +330,54 @@
     border: 2px solid #007bff;
     background: #000;
     object-fit: cover;
+}
+#video-container {
+    display: flex;
+    flex-direction: row;
+    height: 60vh;
+    position: relative;
+}
+
+#screen-share-container {
+    width: 75%;
+    height: 100%;
+    float: left;
+}
+
+#participant-videos {
+    width: 25%;
+    height: 100%;
+    float: right;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.video-wrapper {
+    width: 200px;
+    height: 150px;
+    position: relative;
+    margin: 5px;
+}
+
+.remote-video {
+    width: 100%;
+    height: 100%;
+    border: 2px solid #007bff;
+    background: #000;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.video-label {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
 }
     </style>
 </head>

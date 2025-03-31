@@ -15,6 +15,51 @@ if (!class_exists('ClassroomController')) {
             return true;
         }
 
+        public function canStartVideoCall($classroom_id) {
+            $user_id = $_SESSION['user_id'];
+            $stmt = $this->conn->prepare("SELECT role FROM tb_classroom_members WHERE classroom_id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $classroom_id, $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            return $result && $result['role'] === 'lecturer';
+        }
+
+        public function createMeeting($classroom_id, $type, $date = null, $time = null) {
+            $user_id = $_SESSION['user_id'];
+            $meeting_code = strtoupper(substr(md5(uniqid()), 0, 8));
+            $meeting_link = "index.php?page=video_call_meeting&code=" . $meeting_code;
+
+            $scheduled_at = ($type === 'scheduled' && $date && $time) ? "$date $time" : null;
+
+            $stmt = $this->conn->prepare("
+                INSERT INTO tb_meetings (classroom_id, creator_id, meeting_code, meeting_link, type, scheduled_at, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, NOW())
+            ");
+            $stmt->bind_param("iissss", $classroom_id, $user_id, $meeting_code, $meeting_link, $type, $scheduled_at);
+            $stmt->execute();
+            $meeting_id = $stmt->insert_id;
+            $stmt->close();
+
+            return ['success' => true, 'meeting_link' => $meeting_link, 'meeting_id' => $meeting_id];
+        }
+
+        public function getMeetingDetails($meeting_code) {
+            $stmt = $this->conn->prepare("
+                SELECT m.*, c.title as classroom_title 
+                FROM tb_meetings m 
+                JOIN tb_classrooms c ON m.classroom_id = c.id 
+                WHERE m.meeting_code = ?
+            ");
+            $stmt->bind_param("s", $meeting_code);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $meeting = $result->fetch_assoc();
+            $stmt->close();
+
+            return $meeting ?: [];
+        }
+
         public function createClassroom($title, $description, $image = null) {
             $user_id = $_SESSION['user_id'];
             $class_code = $this->generateClassCode();
