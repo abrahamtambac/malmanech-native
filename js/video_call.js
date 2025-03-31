@@ -38,7 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function connectWebSocket() {
-        const wsUrl = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8080`;
+        const wsUrl = isLocalhost
+             ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8080`
+             : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}/ws`;
         ws = new WebSocket(wsUrl);
 
         ws.onopen = function() {
