@@ -59,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_class']) && $is
 
 // Handler untuk add_activity
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity']) && $isLecturer) {
+    error_log("Memulai proses add_activity untuk classroom_id: $classroom_id, user_id: $user_id");
+    
     $title = $_POST['activity_title'];
     $description = $_POST['activity_description'];
     $content = $_POST['activity_content'] ?? '';
@@ -69,17 +71,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity']) && $i
     if (!$is_link && isset($_FILES['activity_file']) && $_FILES['activity_file']['error'] != UPLOAD_ERR_NO_FILE) {
         $file = $_FILES['activity_file'];
         $uploadDir = "./upload/dosen/activity/{$user_id}/";
-        if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
+        error_log("Mencoba membuat direktori: $uploadDir");
+        
+        if (!file_exists($uploadDir)) {
+            if (mkdir($uploadDir, 0777, true)) {
+                error_log("Direktori berhasil dibuat: $uploadDir");
+            } else {
+                error_log("Gagal membuat direktori: $uploadDir");
+                die("Gagal membuat direktori upload");
+            }
+        }
+        
         $fileName = uniqid() . '-' . basename($file['name']);
         $targetFile = $uploadDir . $fileName;
-        if (move_uploaded_file($file['tmp_name'], $targetFile)) $file_name = $fileName;
+        error_log("Mencoba mengunggah file ke: $targetFile");
+        
+        if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+            $file_name = $fileName;
+            error_log("File berhasil diunggah: $fileName");
+        } else {
+            error_log("Gagal mengunggah file: " . $file['error']);
+            die("Gagal mengunggah file");
+        }
     } else {
         $file_name = $content;
+        error_log("Menggunakan link sebagai file_name: $file_name");
     }
 
+    if (!$conn) {
+        error_log("Koneksi database gagal: " . mysqli_connect_error());
+        die("Koneksi database gagal");
+    }
+    
     $stmt = $conn->prepare("INSERT INTO tb_classroom_activities (classroom_id, title, description, file_name, is_link, type, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+    if (!$stmt) {
+        error_log("Prepare statement gagal: " . $conn->error);
+        die("Prepare statement gagal");
+    }
+    
     $stmt->bind_param("isssis", $classroom_id, $title, $description, $file_name, $is_link, $type);
-    $stmt->execute();
+    if ($stmt->execute()) {
+        error_log("Data berhasil disimpan ke database");
+    } else {
+        error_log("Gagal menyimpan ke database: " . $stmt->error);
+        die("Gagal menyimpan ke database");
+    }
+    
     $stmt->close();
     header("Location: index.php?page=classroom&classroom_id=" . $classroom_id);
     exit();
