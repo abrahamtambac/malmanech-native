@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const configuration = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'turn:165.22.176.111:3478', username: 'testuser', credential: 'testpass' }
+            //{ urls: 'turn:165.22.176.111:3478', username: 'testuser', credential: 'testpass' }
         ]
     };
 

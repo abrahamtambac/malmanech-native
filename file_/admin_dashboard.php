@@ -320,7 +320,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
                 <img src="<?php echo !empty($profile_image) ? './upload/image/' . $profile_image : './image/robot-ai.png'; ?>"
                      alt="Profil Admin" class="rounded-circle me-3 border border-primary border-3 shadow-sm" style="width: 90px; height: 90px; object-fit: cover;">
                 <div>
-                    <h2 class="text-dark fw-bolder mb-1">Selamat Datang, <?php echo htmlspecialchars($userProfile['name']); ?>!</h2>
+                    <h2 class="text-dark fw-bolder mb-1">Selamat Datang, <?php echo htmlspecialchars($userProfile['name']); ?></h2>
                     <p class="small text-muted mb-2">
                         <span class="status-dot <?php echo $lastSeen ? 'offline' : 'online'; ?>"></span>
                         <?php echo $lastSeen ? 'Terakhir aktif: ' . $lastSeen : 'Sedang aktif'; ?>
@@ -571,7 +571,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
         <div class="modal-content" style="border-radius: 15px;">
             <form method="POST" enctype="multipart/form-data">
                 <div class="modal-header">
-                    <h5 class="modal-title">Update Profil</h5>
+                    <h5 class="modal-title text-white">Update Profil</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -602,7 +602,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
         <div class="modal-content" style="border-radius: 15px;">
             <form method="POST" enctype="multipart/form-data">
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Classroom Baru</h5>
+                    <h5 class="modal-title text-white">Tambah Classroom Baru</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -633,7 +633,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
         <div class="modal-content" style="border-radius: 15px;">
             <form method="POST" enctype="multipart/form-data">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Classroom</h5>
+                    <h5 class="modal-title text-white">Edit Classroom</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -666,7 +666,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
         <div class="modal-content" style="border-radius: 15px;">
             <form method="POST">
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Meeting Baru</h5>
+                    <h5 class="modal-title text-white">Tambah Meeting Baru</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -716,7 +716,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius: 15px;">
             <div class="modal-header">
-                <h5 class="modal-title">Semua Classroom Saya</h5>
+                <h5 class="modal-title text-white">Semua Classroom Saya</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -756,7 +756,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius: 15px;">
             <div class="modal-header">
-                <h5 class="modal-title">Semua Classroom yang Diikuti</h5>
+                <h5 class="modal-title text-white">Semua Classroom yang Diikuti</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -794,7 +794,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius: 15px;">
             <div class="modal-header">
-                <h5 class="modal-title">Semua Meeting Saya</h5>
+                <h5 class="modal-title text-white">Semua Meeting Saya</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -834,7 +834,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius: 15px;">
             <div class="modal-header">
-                <h5 class="modal-title">Semua Undangan Meeting</h5>
+                <h5 class="modal-title text-white">Semua Undangan Meeting</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -1265,93 +1265,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
-<style>
-.card {
-    border-radius: 10px;
-    transition: transform 0.2s ease-in-out;
-}
-.card:hover {
-    transform: translateY(-5px);
-}
-.alert-info {
-    background-color: #e7f3ff;
-    border-color: #b8daff;
-    color: #004085;
-}
-.alert-warning {
-    background-color: #fff3cd;
-    border-color: #ffeeba;
-    color: #856404;
-}
-.alert-primary {
-    background-color: #e7f3ff;
-    border-color: #b8daff;
-    color: #004085;
-}
-.alert-danger {
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
-}
-.badge {
-    font-size: 0.8rem;
-}
-.status-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 5px;
-}
-.status-dot.online {
-    background-color: #28a745;
-}
-.status-dot.offline {
-    background-color: #dc3545;
-}
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-    transition: background-color 0.3s ease;
-}
-.btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
-.btn-outline-primary {
-    border-color: #007bff;
-    color: #007bff;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.btn-outline-primary:hover {
-    background-color: #007bff;
-    color: #fff;
-}
-.btn-outline-warning {
-    border-color: #ffc107;
-    color: #ffc107;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.btn-outline-warning:hover {
-    background-color: #ffc107;
-    color: #fff;
-}
-.btn-outline-danger {
-    border-color: #dc3545;
-    color: #dc3545;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.btn-outline-danger:hover {
-    background-color: #dc3545;
-    color: #fff;
-}
-.form-control, .form-select {
-    border-radius: 10px;
-    transition: border-color 0.3s ease;
-}
-.form-control:focus, .form-select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-}
-</style>

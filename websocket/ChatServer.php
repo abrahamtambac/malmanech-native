@@ -210,29 +210,6 @@ class ChatServer implements MessageComponentInterface {
                 $this->log("Relayed {$data['type']} to User ID: {$data['to_user_id']} from User ID: {$this->userIds[$from->resourceId]}");
                 break;
 
-            case 'screen_share_stopped':
-                $classroom_id = $data['classroom_id'];
-                $user_id = $this->userIds[$from->resourceId];
-                $this->broadcastToClassroom($classroom_id, [
-                    'type' => 'screen_share_stopped',
-                    'classroom_id' => $classroom_id,
-                    'user_id' => $user_id
-                ], $from);
-                $this->log("Screen share stopped by User $user_id in classroom $classroom_id");
-                break;
-
-            case 'speaker_activity':
-                $classroom_id = $data['classroom_id'];
-                $user_id = $this->userIds[$from->resourceId];
-                $this->broadcastToClassroom($classroom_id, [
-                    'type' => 'speaker_activity',
-                    'classroom_id' => $classroom_id,
-                    'user_id' => $user_id,
-                    'volume' => $data['volume']
-                ], $from);
-                $this->log("Speaker activity from User $user_id in classroom $classroom_id");
-                break;
-
             case 'video_call_ended':
                 $classroom_id = $data['classroom_id'];
                 $user_id = $this->userIds[$from->resourceId];
@@ -326,8 +303,6 @@ class ChatServer implements MessageComponentInterface {
                     $this->log("Broadcasted to classroom $classroom_id participant Resource ID: {$participantConn->resourceId}");
                 }
             }
-        } else {
-            $this->log("No active call found for classroom $classroom_id");
         }
     }
 

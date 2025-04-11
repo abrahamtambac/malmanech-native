@@ -18,14 +18,17 @@
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
         rel="stylesheet">
     <style>
-         @font-face {
-        font-family: 'Circular Std';
-        src: url('./fonts/circular-std-medium-500.ttf') format('truetype');
-    }
-        body {
-            font-family: 'Circular Std';
-           
+        @font-face {
+            font-family: 'CircularStd-Book';
+            src: url('./fonts/CircularStd-Book.ttf') format('truetype');
         }
+
+        body {
+            font-family: 'CircularStd-Book';
+
+        }
+ 
+        
 
         .dashboard-container {
             padding: 20px;
@@ -378,6 +381,93 @@
     padding: 2px 8px;
     border-radius: 5px;
     font-size: 0.9em;
+}
+.card {
+    border-radius: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.alert-info {
+    background-color: #e7f3ff;
+    border-color: #b8daff;
+    color: #004085;
+}
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    color: #856404;
+}
+.alert-primary {
+    background-color: #e7f3ff;
+    border-color: #b8daff;
+    color: #004085;
+}
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+.badge {
+    font-size: 0.8rem;
+}
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+.status-dot.online {
+    background-color: #28a745;
+}
+.status-dot.offline {
+    background-color: #dc3545;
+}
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    transition: background-color 0.3s ease;
+}
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+.btn-outline-primary {
+    border-color: #007bff;
+    color: #007bff;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+.btn-outline-warning {
+    border-color: #ffc107;
+    color: #ffc107;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    color: #fff;
+}
+.btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+}
+.form-control, .form-select {
+    border-radius: 10px;
+    transition: border-color 0.3s ease;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
     </style>
 </head>

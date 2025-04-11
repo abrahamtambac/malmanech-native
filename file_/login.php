@@ -24,16 +24,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <section id="features" class="py-5">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="card border-0 shadow-sm p-4 mt-5 card-hover">
+            <div class="col-md-6 col-lg-5 ">
+                <div class="card border-1 shadow-sm p-4 mt-5 card-hover">
                     <?php if ($error): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <?php echo $error; ?>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <?php endif; ?>
-                    <h2 class=" fw-bolder mb-2">Login ...</h2>
-                    <p class=" text-muted mb-4">Nikmati fasilitas mal + dari malmanech</p>
+                    <h4 class="text-dark mt-2">
+                                <i class="bi bi-fingerprint text-warning mt-5 text-center"></i><b>
+                                    Malmanech Login</b>
+                            </h4>
+                   <br/>
                     <form action="" method="POST">
                         <div class="mb-3">
                             <label for="email" class="form-label fw-bold">Email</label>

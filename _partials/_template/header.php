@@ -19,12 +19,12 @@
         rel="stylesheet">
     <style>
         @font-face {
-            font-family: 'Circular Std';
-            src: url('./fonts/circular-std-medium-500.ttf') format('truetype');
+            font-family: 'CircularStd-Book';
+            src: url('./fonts/CircularStd-Book.ttf') format('truetype');
         }
 
         body {
-            font-family: 'Circular Std';
+            font-family: 'CircularStd-Book';
 
         }
 
@@ -328,11 +328,11 @@
         .message .file-download i {
             margin-right: 5px;
         }
-
         @font-face {
-            font-family: 'Product Sans';
-            src: url('./fonts/ProductSans-Regular.ttf') format('truetype');
+            font-family: 'CircularStd-Book';
+            src: url('./fonts/CircularStd-Book.ttf') format('truetype');
         }
+
 
         :root {
             --primary: #0d6efd;
@@ -343,29 +343,12 @@
         }
 
         body {
-            font-family: 'Product Sans', sans-serif;
+            font-family: 'CircularStd-Book', sans-serif;
             line-height: 1.6;
             color: var(--dark);
         }
 
-        .hero {
-            background: var(--secondary);
-            padding: 120px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('https://www.transparenttextures.com/patterns/subtle-white-feathers.png');
-            opacity: 0.1;
-            animation: subtleMove 20s infinite linear;
-        }
+        
 
         @keyframes subtleMove {
             0% {
