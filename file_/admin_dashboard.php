@@ -8,8 +8,11 @@ $adminController->checkAdminAccess();
 $classroomController = new ClassroomController($conn);
 
 // Ambil data profil
+// Ambil data profil
 $userProfile = $adminController->getUserProfile();
 $profile_image = $userProfile['profile_image'];
+$lastSeen = $userProfile['last_seen'] ?? null; // Use null if last_seen is not set
+$lastSeenFormatted = $lastSeen ? date('d M Y, H:i', strtotime($lastSeen)) : null;
 $show_upload_modal = empty($profile_image);
 
 // Proses update profil
@@ -322,8 +325,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_invited_meetings' && i
                 <div>
                     <h2 class="text-dark fw-bolder mb-1">Selamat Datang, <?php echo htmlspecialchars($userProfile['name']); ?></h2>
                     <p class="small text-muted mb-2">
-                        <span class="status-dot <?php echo $lastSeen ? 'offline' : 'online'; ?>"></span>
-                        <?php echo $lastSeen ? 'Terakhir aktif: ' . $lastSeen : 'Sedang aktif'; ?>
+                     <span class="status-dot <?php echo $lastSeen ? 'offline' : 'online'; ?>"></span>
+<?php echo $lastSeenFormatted ? 'Terakhir aktif: ' . htmlspecialchars($lastSeenFormatted) : 'Sedang aktif'; ?>
                     </p>
                     <div class="row">
                         <div class="col-md-6">

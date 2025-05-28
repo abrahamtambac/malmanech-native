@@ -15,16 +15,16 @@ if (!class_exists('AdminController')) {
             return true;
         }
 
-        public function getUserProfile() {
-            $user_id = $_SESSION['user_id'];
-            $stmt = $this->conn->prepare("SELECT name, email, profile_image FROM tb_users WHERE id = ?");
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $user = $result->fetch_assoc();
-            $stmt->close();
-            return $user ?: [];
-        }
+     public function getUserProfile() {
+    $user_id = $_SESSION['user_id'];
+    $stmt = $this->conn->prepare("SELECT name, email, profile_image, last_seen FROM tb_users WHERE id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    $stmt->close();
+    return $user ?: [];
+}
 
         public function uploadProfileImage() {
             $uploadDir = './upload/image/';
