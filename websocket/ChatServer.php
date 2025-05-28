@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_WARNING); // Nonaktifkan deprecated dan warning
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 
@@ -210,22 +211,27 @@ class ChatServer implements MessageComponentInterface {
                 $this->log("Relayed {$data['type']} to User ID: {$data['to_user_id']} from User ID: {$this->userIds[$from->resourceId]}");
                 break;
 
-            case 'video_call_ended':
-                $classroom_id = $data['classroom_id'];
-                $user_id = $this->userIds[$from->resourceId];
-                if (isset($this->classroomCalls[$classroom_id])) {
-                    unset($this->classroomCalls[$classroom_id][$user_id]);
-                    if (empty($this->classroomCalls[$classroom_id]) || $this->getUserRole($user_id, $classroom_id) === 'lecturer') {
-                        unset($this->classroomCalls[$classroom_id]);
-                        $this->broadcastToAllClassroomMembers($classroom_id, [
-                            'type' => 'video_call_ended',
-                            'classroom_id' => $classroom_id,
-                            'user_id' => $user_id
-                        ], $from);
-                        $this->log("Video call ended in classroom $classroom_id by User $user_id");
-                    }
-                }
-                break;
+           case 'video_call_ended':
+    $user_id = $this->userIds[$from->resourceId];
+    $to_user_id = $data['to_user_id'] ?? null;
+    $classroom_id = $data['classroom_id'] ?? null;
+
+    if ($classroom_id && isset($this->classroomCalls[$classroom_id])) {
+        unset($this->classroomCalls[$classroom_id][$user_id]);
+        if (empty($this->classroomCalls[$classroom_id]) || $this->getUserRole($user_id, $classroom_id) === 'lecturer') {
+            unset($this->classroomCalls[$classroom_id]);
+            $this->broadcastToAllClassroomMembers($classroom_id, [
+                'type' => 'video_call_ended',
+                'classroom_id' => $classroom_id,
+                'user_id' => $user_id
+            ], $from);
+            $this->log("Video call ended in classroom $classroom_id by User $user_id");
+        }
+    } elseif ($to_user_id) {
+        $this->relayToUser($to_user_id, $data);
+        $this->log("One-on-one video call ended for User $user_id to User $to_user_id");
+    }
+    break;
 
             case 'check_call_status':
                 $classroom_id = $data['classroom_id'];
