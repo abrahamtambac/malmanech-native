@@ -609,7 +609,7 @@
     <nav class="navbar navbar-expand-lg bg-primary ">
         <div class="container-fluid">
             <a class="navbar-brand text-white fw-bold" href="index.php?page=home">
-                <h1 class="mb-0"><i class="bi bi-fingerprint text-warning"></i><b> Malmanech.com</b></h1>
+                <h1 class="mb-0"><i class="bi bi-fingerprint text-warning"></i><b> Mal +</b></h1>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
                 aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">

@@ -16,75 +16,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validasi Nama
     if (empty($name)) {
-        $errors[] = "Full name is required!";
+        $errors[] = "Nama lengkap wajib diisi!";
     } elseif (strlen($name) < 3) {
-        $errors[] = "Full name must be at least 3 characters long!";
+        $errors[] = "Nama lengkap harus minimal 3 karakter!";
     }
 
     // Validasi Email
     if (empty($email)) {
-        $errors[] = "Email is required!";
+        $errors[] = "Email wajib diisi!";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Invalid email format!";
+        $errors[] = "Format email tidak valid!";
     } else {
         $stmt = $conn->prepare("SELECT id FROM tb_users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
         if ($result->num_rows > 0) {
-            $errors[] = "Email already registered!";
+            $errors[] = "Email sudah terdaftar!";
         }
         $stmt->close();
     }
 
     // Validasi Password
     if (empty($password)) {
-        $errors[] = "Password is required!";
+        $errors[] = "Kata sandi wajib diisi!";
     } elseif (strlen($password) < 6) {
-        $errors[] = "Password must be at least 6 characters long!";
+        $errors[] = "Kata sandi harus minimal 6 karakter!";
     }
 
     // Validasi Konfirmasi Password
     if (empty($confirm_password)) {
-        $errors[] = "Password confirmation is required!";
+        $errors[] = "Konfirmasi kata sandi wajib diisi!";
     } elseif ($password !== $confirm_password) {
-        $errors[] = "Passwords do not match!";
+        $errors[] = "Kata sandi tidak cocok!";
     }
 
     // Validasi Persetujuan Syarat
     if (!$terms) {
-        $errors[] = "You must agree to the terms and conditions!";
+        $errors[] = "Anda harus menyetujui syarat dan ketentuan!";
     }
 
-    // Jika tidak ada error, simpan ke database
+    // Jika tidak ada error, simpan ke database dan kirim email verifikasi
     if (empty($errors)) {
         $password_hashed = password_hash($password, PASSWORD_DEFAULT);
-        $verification_token = bin2hex(random_bytes(16)); // Still generate a token, but it won't be used
-        $is_verified = 1; // Set to 1 to auto-verify the account
+        $verification_token = bin2hex(random_bytes(16));
+        $is_verified = 0; // Akun belum diverifikasi
 
         $stmt = $conn->prepare("INSERT INTO tb_users (name, email, password, role_id, verification_token, is_verified) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("sssisi", $name, $email, $password_hashed, $role_id, $verification_token, $is_verified);
         
         if ($stmt->execute()) {
-            $show_success_modal = true;
+            // Panggil send_email.php untuk mengirim email verifikasi
+            $command = "php file_/send_email.php " . escapeshellarg($email) . " " . escapeshellarg($name) . " " . escapeshellarg($verification_token) . " 2>&1";
+            exec($command, $output, $return_var);
+            
+            if ($return_var === 0) {
+                $show_success_modal = true;
+            } else {
+                $errors[] = "Gagal mengirim email verifikasi. Silakan coba lagi.";
+                error_log("Email sending failed: " . implode("\n", $output));
+            }
         } else {
-            $errors[] = "Registration failed! Please try again.";
+            $errors[] = "Pendaftaran gagal! Silakan coba lagi.";
         }
         $stmt->close();
     }
 }
 ?>
 
-
 </head>
 <body>
     <!-- Main Content -->
     <div class="container flex-grow-1 d-flex align-items-center justify-content-center py-5">
         <div class="row justify-content-center w-100">
+            <div class="col-md-6">
+                <h2>Alur Pendaftaran</h2>
+                <ol>
+                    <li><strong>Isi Formulir Pendaftaran:</strong> Lengkapi nama, email, kata sandi, dan konfirmasi kata sandi.</li>
+                    <li><strong>Setujui Syarat & Ketentuan:</strong> Centang kotak untuk menyetujui syarat dan ketentuan.</li>
+                    <li><strong>Kirim Formulir:</strong> Klik tombol "Daftar" untuk mengirimkan data.</li>
+                    <li><strong>Verifikasi Email:</strong> Periksa kotak masuk email Anda dan klik tautan verifikasi.</li>
+                    <li><strong>Masuk ke Akun:</strong> Setelah verifikasi, masuk dengan email dan kata sandi Anda.</li>
+                </ol>
+            </div>
             <div class="col-md-6 col-lg-5">
                 <div class="card border-0 shadow-sm p-4 card-hover">
-                    <h2 class="text-center fw-bold mb-2">Sign Up for Free</h2>
-                    <p class="text-center text-muted mb-4">Please fill in the correct details</p>
+                    <h2 class="text-center fw-bold mb-2">Daftar Gratis</h2>
+                    <p class="text-center text-muted mb-4">Isi data dengan benar</p>
 
                     <?php if (!empty($errors)): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -98,10 +116,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form action="" method="POST">
                         <!-- Full Name -->
                         <div class="mb-3">
-                            <label for="name" class="form-label fw-bold">Full Name</label>
+                            <label for="name" class="form-label fw-bold">Nama Lengkap</label>
                             <input type="text" name="name" id="name" value="<?php echo isset($name) ? htmlspecialchars($name) : ''; ?>" required 
                                    class="form-control input-focus" 
-                                   placeholder="Enter your full name">
+                                   placeholder="Masukkan nama lengkap">
                         </div>
 
                         <!-- Email -->
@@ -109,16 +127,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="email" class="form-label fw-bold">Email</label>
                             <input type="email" name="email" id="email" value="<?php echo isset($email) ? htmlspecialchars($email) : ''; ?>" required 
                                    class="form-control input-focus" 
-                                   placeholder="Enter your email">
+                                   placeholder="Masukkan email">
                         </div>
 
                         <!-- Password -->
                         <div class="mb-3">
-                            <label for="signupPassword" class="form-label fw-bold">Password</label>
+                            <label for="signupPassword" class="form-label fw-bold">Kata Sandi</label>
                             <div class="input-group">
                                 <input type="password" name="password" id="signupPassword" required 
                                        class="form-control input-focus" 
-                                       placeholder="Create a password">
+                                       placeholder="Buat kata sandi">
                                 <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('signupPassword', this)">
                                     <i class="bi bi-eye-slash" id="toggleIconSignup"></i>
                                 </button>
@@ -127,11 +145,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <!-- Confirm Password -->
                         <div class="mb-3">
-                            <label for="confirmPassword" class="form-label fw-bold">Confirm Password</label>
+                            <label for="confirmPassword" class="form-label fw-bold">Konfirmasi Kata Sandi</label>
                             <div class="input-group">
                                 <input type="password" name="confirm_password" id="confirmPassword" required 
                                        class="form-control input-focus" 
-                                       placeholder="Confirm your password">
+                                       placeholder="Konfirmasi kata sandi">
                                 <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmPassword', this)">
                                     <i class="bi bi-eye-slash" id="toggleIconConfirm"></i>
                                 </button>
@@ -142,22 +160,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="mb-4 form-check">
                             <input type="checkbox" name="terms" id="terms" class="form-check-input">
                             <label for="terms" class="form-check-label text-muted">
-                                I agree to the <a href="#" class="text-primary text-decoration-none">Terms and Conditions</a>
+                                Saya setuju dengan <a href="#" class="text-primary text-decoration-none">Syarat dan Ketentuan</a>
                             </label>
                         </div>
 
                         <!-- Submit Button -->
                         <button type="submit" 
                                 class="btn btn-primary w-100 py-2 fw-semibold">
-                            Sign Up
+                            Daftar
                             <i class="bi bi-arrow-right ms-2"></i>
                         </button>
                     </form>
 
                     <!-- Login Link -->
                     <p class="text-center mt-3 text-muted">
-                        Already have an account? 
-                        <a href="index.php?page=login" class="text-primary fw-semibold text-decoration-none">Login</a>
+                        Sudah punya akun? 
+                        <a href="index.php?page=login" class="text-primary fw-semibold text-decoration-none">Masuk</a>
                     </p>
                 </div>
             </div>
@@ -169,16 +187,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold" id="successModalLabel">Registration Successful!</h5>
+                    <h5 class="modal-title fw-bold" id="successModalLabel">Periksa Email Anda!</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
-                    <p class="mt-3">Your account has been created! You can now log in.</p>
+                    <i class="bi bi-envelope-check text-success" style="font-size: 3rem;"></i>
+                    <p class="mt-3">Kami telah mengirim email verifikasi ke kotak masuk Anda. Silakan klik tautan untuk mengaktifkan akun Anda.</p>
                 </div>
                 <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="window.location.href='index.php?page=login'">
-                        Go to Login
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        OK
                     </button>
                 </div>
             </div>

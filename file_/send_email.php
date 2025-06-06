@@ -26,7 +26,7 @@ try {
     $mail->addAddress($to);
     $mail->isHTML(true);
     $mail->Subject = 'Verify Your Mal + Account';
-    $verification_link = "http://malmanech.com/index.php?page=verify&token=" . $token;
+    $verification_link = "https://malmanech.com/index.php?page=verify&token=" . $token;
     $mail->Body = "
     <html>
     <head>
